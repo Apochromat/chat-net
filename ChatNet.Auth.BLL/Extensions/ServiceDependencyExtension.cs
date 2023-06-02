@@ -21,6 +21,7 @@ public static class ServiceDependencyExtension {
         services.AddDbContext<AuthDbContext>(options => 
             options.UseNpgsql(configuration.GetConnectionString("AuthDatabase")));
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<IAccountService, AccountService>();
         return services;
     }
 }
