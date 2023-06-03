@@ -24,6 +24,7 @@ public class AuthService : IAuthService {
     private readonly SignInManager<User> _signInManager;
     private readonly AuthDbContext _authDbContext;
     private readonly IConfiguration _configuration;
+    private readonly IMessageSenderService _messageSenderService;
 
     /// <summary>
     /// Constructor
@@ -33,13 +34,16 @@ public class AuthService : IAuthService {
     /// <param name="signInManager"></param>
     /// <param name="authDbContext"></param>
     /// <param name="configuration"></param>
+    /// <param name="messageSenderService"></param>
+
     public AuthService(ILogger<AuthService> logger, UserManager<User> userManager, SignInManager<User> signInManager,
-        AuthDbContext authDbContext,IConfiguration configuration) {
+        AuthDbContext authDbContext,IConfiguration configuration, IMessageSenderService messageSenderService) {
         _logger = logger;
         _userManager = userManager;
         _signInManager = signInManager;
         _authDbContext = authDbContext;
         _configuration = configuration;
+        _messageSenderService = messageSenderService;
     }
 
     /// <summary>
@@ -73,6 +77,10 @@ public class AuthService : IAuthService {
 
         if (result.Succeeded) {
             _logger.LogInformation("Successful register");
+            await _messageSenderService.SendNotification(new NotificationMessageDto {
+                Title = "request on create user in backend",
+                NewUserId = user.Id
+            });
 
             return await LoginAsync(new AccountLoginDto()
                 { Email = accountRegisterDto.Email, Password = accountRegisterDto.Password }, httpContext);
