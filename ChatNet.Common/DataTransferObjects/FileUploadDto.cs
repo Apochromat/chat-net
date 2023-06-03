@@ -33,6 +33,11 @@ public class FileUploadDto {
     public required FileType Type { get; set; }
     
     /// <summary>
+    /// Is the file public
+    /// </summary>
+    public required bool IsPublic { get; set; }
+    
+    /// <summary>
     /// Identifier of the user who uploaded the file
     /// </summary>
     [Required]

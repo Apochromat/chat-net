@@ -42,6 +42,7 @@ public class FileStorageService : IFileStorageService {
                 ContentType = fileUploadDto.ContentType,
                 Type = fileUploadDto.Type,
                 Name = Transliterate(fileUploadDto.Name),
+                IsPublic = fileUploadDto.IsPublic,
                 OwnerId = fileUploadDto.OwnerId,
                 Viewers = fileUploadDto.Viewers
             };
@@ -143,7 +144,7 @@ public class FileStorageService : IFileStorageService {
             throw new NotFoundException("File not found");
         }
 
-        if (file.OwnerId != ownerId && !file.Viewers.Contains(ownerId)) {
+        if (file.OwnerId != ownerId && !file.Viewers.Contains(ownerId) && !file.IsPublic) {
             throw new ForbiddenException("You don't have access to this file");
         }
 
@@ -168,7 +169,7 @@ public class FileStorageService : IFileStorageService {
             throw new NotFoundException("File not found");
         }
 
-        if (file.OwnerId != ownerId && !file.Viewers.Contains(ownerId)) {
+        if (file.OwnerId != ownerId && !file.Viewers.Contains(ownerId) && !file.IsPublic) {
             throw new ForbiddenException("You don't have access to this file");
         }
 

@@ -35,7 +35,7 @@ public class FileStorageController : ControllerBase {
     /// <returns></returns>
     [HttpPost]
     public async Task<ActionResult<Guid>> UploadFile(IFormFile formFile, [FromQuery] [Required] FileType fileType,
-        [FromQuery] [Optional] List<Guid> viewers) {
+        [FromQuery] [Optional] List<Guid> viewers, [FromQuery] [Required] bool isPublic = false) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
@@ -45,6 +45,7 @@ public class FileStorageController : ControllerBase {
             ContentType = formFile.ContentType,
             Name = formFile.FileName,
             Type = fileType,
+            IsPublic = isPublic,
             OwnerId = userId,
             Viewers = viewers
         });

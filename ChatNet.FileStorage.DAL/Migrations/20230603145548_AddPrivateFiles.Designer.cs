@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using ChatNet.FileStorage.DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,9 +13,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ChatNet.FileStorage.DAL.Migrations
 {
     [DbContext(typeof(FileStorageDbContext))]
-    partial class FileStorageDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230603145548_AddPrivateFiles")]
+    partial class AddPrivateFiles
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

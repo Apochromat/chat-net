@@ -27,6 +27,11 @@ public class StoredFile {
     public required FileType Type { get; set; }
 
     /// <summary>
+    /// Is the file public
+    /// </summary>
+    public required bool IsPublic { get; set; } = false;
+    
+    /// <summary>
     /// Identifier of the user who uploaded the file
     /// </summary>
     public Guid OwnerId { get; set; }
