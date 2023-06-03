@@ -4,11 +4,12 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Extensions\" />
-      <Folder Include="Services\" />
+      <ProjectReference Include="..\ChatNet.Common\ChatNet.Common.csproj" />
+      <ProjectReference Include="..\ChatNet.FileStorage.DAL\ChatNet.FileStorage.DAL.csproj" />
     </ItemGroup>
 
 </Project>
