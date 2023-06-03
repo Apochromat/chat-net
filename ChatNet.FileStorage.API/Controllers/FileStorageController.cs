@@ -80,9 +80,12 @@ public class FileStorageController : ControllerBase {
     public async Task<FileContentResult> DownloadFile([FromRoute] Guid fileId, bool attachment = false) {
         var file = await _fileStorageService.DownloadFileAsync(fileId, new Guid());
         _logger.LogInformation("File was downloaded");
-        return attachment 
+        var result = attachment 
             ? File(file.Content, file.ContentType, file.Name)
             : File(file.Content, file.ContentType);
+        result.EnableRangeProcessing = true;
+
+        return result;
     }
 
     /// <summary>
