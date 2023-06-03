@@ -6,6 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace ChatNet.Common.Extensions; 
 
+/// <summary>
+/// Extension for jwt authorisation
+/// </summary>
 public static class JwtAuthorisationExtension {
     /// <summary>
     /// Add jwt authorisation

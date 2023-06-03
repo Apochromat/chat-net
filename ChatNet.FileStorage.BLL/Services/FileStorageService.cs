@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.RegularExpressions;
 using ChatNet.Common.DataTransferObjects;
+using ChatNet.Common.Enumerations;
 using ChatNet.Common.Exceptions;
 using ChatNet.Common.Interfaces;
 using ChatNet.FileStorage.DAL;
@@ -28,13 +29,15 @@ public class FileStorageService : IFileStorageService {
     }
 
     /// <inheritdoc/>
-    public async Task UploadFileAsync(FileUploadDto fileUploadDto) {
+    public async Task<Guid> UploadFileAsync(FileUploadDto fileUploadDto) {
         using var memoryStream = new MemoryStream();
         await fileUploadDto.Content.CopyToAsync(memoryStream);
 
         if (memoryStream.Length < 1048576 * _configuration.GetSection("FileStorage").GetValue<int>("MaxFileSizeInMB")) {
+            var id = Guid.NewGuid();
+
             var file = new StoredFile() {
-                Id = new Guid(),
+                Id = id,
                 Content = memoryStream.ToArray(),
                 ContentType = fileUploadDto.ContentType,
                 Type = fileUploadDto.Type,
@@ -45,6 +48,8 @@ public class FileStorageService : IFileStorageService {
 
             await _dbContext.Files.AddAsync(file);
             await _dbContext.SaveChangesAsync();
+
+            return id;
         }
         else {
             throw new ArgumentException("File is too big");
@@ -52,7 +57,8 @@ public class FileStorageService : IFileStorageService {
     }
 
     /// <inheritdoc/>
-    public async Task<Pagination<FileInfoDto>> GetOwnedFilesInfoAsync(Guid ownerId, int page, int pageSize) {
+    public async Task<Pagination<FileInfoDto>> GetOwnedFilesInfoAsync(Guid ownerId, int page, int pageSize,
+        List<FileType>? fileTypes = null) {
         if (page < 1) {
             throw new ArgumentException("Page must be greater than 0");
         }
@@ -62,7 +68,9 @@ public class FileStorageService : IFileStorageService {
         }
 
         var files = await _dbContext.Files
-            .Where(f => f.OwnerId == ownerId && f.DeletedAt == null)
+            .Where(f => f.OwnerId == ownerId
+                        && f.DeletedAt == null
+                        && (fileTypes == null || fileTypes.Count == 0 || fileTypes.Contains(f.Type)))
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(x => new FileInfoDto() {
@@ -78,12 +86,17 @@ public class FileStorageService : IFileStorageService {
             .ToListAsync();
 
         var pagesAmount = (int)Math.Ceiling((double)files.Count / pageSize);
+
+        if (page > pagesAmount) {
+            throw new NotFoundException("Page not found");
+        }
 
         return new Pagination<FileInfoDto>(files, page, pageSize, pagesAmount);
     }
 
     /// <inheritdoc/>
-    public async Task<Pagination<FileInfoDto>> GetSharedWithUserFilesInfoAsync(Guid userId, int page, int pageSize) {
+    public async Task<Pagination<FileInfoDto>> GetSharedWithUserFilesInfoAsync(Guid userId, int page, int pageSize,
+        List<FileType>? fileTypes = null) {
         if (page < 1) {
             throw new ArgumentException("Page must be greater than 0");
         }
@@ -93,7 +106,9 @@ public class FileStorageService : IFileStorageService {
         }
 
         var files = await _dbContext.Files
-            .Where(f => f.Viewers.Contains(userId) && f.DeletedAt == null)
+            .Where(f => f.Viewers.Contains(userId)
+                        && f.DeletedAt == null
+                        && (fileTypes == null || fileTypes.Count == 0 || fileTypes.Contains(f.Type)))
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .Select(x => new FileInfoDto() {
@@ -109,6 +124,10 @@ public class FileStorageService : IFileStorageService {
             .ToListAsync();
 
         var pagesAmount = (int)Math.Ceiling((double)files.Count / pageSize);
+
+        if (page > pagesAmount) {
+            throw new NotFoundException("Page not found");
+        }
 
         return new Pagination<FileInfoDto>(files, page, pageSize, pagesAmount);
     }
@@ -429,7 +448,7 @@ public class FileStorageService : IFileStorageService {
 
         string fileName = Path.GetFileNameWithoutExtension(input);
         string extension = Path.GetExtension(input);
-        
+
         var transliterated = new StringBuilder();
         foreach (var character in fileName.ToLower()) {
             if (transliterationMap.TryGetValue(character, out var value)) {

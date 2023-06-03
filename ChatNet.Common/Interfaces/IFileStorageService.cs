@@ -1,4 +1,5 @@
 ﻿using ChatNet.Common.DataTransferObjects;
+using ChatNet.Common.Enumerations;
 
 namespace ChatNet.Common.Interfaces; 
 
@@ -11,7 +12,7 @@ public interface IFileStorageService {
     /// </summary>
     /// <param name="fileUploadDto"></param>
     /// <returns></returns>
-    Task UploadFileAsync(FileUploadDto fileUploadDto);
+    Task<Guid> UploadFileAsync(FileUploadDto fileUploadDto);
 
     /// <summary>
     /// Gets information about all files which are owned by user
@@ -19,8 +20,9 @@ public interface IFileStorageService {
     /// <param name="ownerId"></param>
     /// <param name="page"></param>
     /// <param name="pageSize"></param>
+    /// <param name="fileTypes"></param>
     /// <returns></returns>
-    Task<Pagination<FileInfoDto>> GetOwnedFilesInfoAsync(Guid ownerId, int page, int pageSize);
+    Task<Pagination<FileInfoDto>> GetOwnedFilesInfoAsync(Guid ownerId, int page, int pageSize, List<FileType>? fileTypes = null);
 
     /// <summary>
     /// Gets information about all files which are shared with user
@@ -28,8 +30,9 @@ public interface IFileStorageService {
     /// <param name="userId"></param>
     /// <param name="page"></param>
     /// <param name="pageSize"></param>
+    /// <param name="fileTypes"></param>
     /// <returns></returns>
-    Task<Pagination<FileInfoDto>> GetSharedWithUserFilesInfoAsync(Guid userId, int page, int pageSize);
+    Task<Pagination<FileInfoDto>> GetSharedWithUserFilesInfoAsync(Guid userId, int page, int pageSize, List<FileType>? fileTypes = null);
 
     /// <summary>
     /// Gets information about file
