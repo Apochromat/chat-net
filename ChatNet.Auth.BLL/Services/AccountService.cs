@@ -22,11 +22,13 @@ public class AccountService: IAccountService {
         var profile = new ProfileFullDto {
             Id = user.Id,
             Email = user.Email,
+            PhoneNumber = user.PhoneNumber,
             FullName = user.FullName,
             BirthDate = user.BirthDate,
-            PhotoId = Guid.NewGuid(),
-            IsBanned = await _userManager.IsLockedOutAsync(user),
-            Roles = (await _userManager.GetRolesAsync(user)).ToList()
+            JoinedAt = user.JoinedAt,
+            //TODO 
+            //PhotoId = 
+            IsBanned = await _userManager.IsLockedOutAsync(user)
         };
         return profile;
     }

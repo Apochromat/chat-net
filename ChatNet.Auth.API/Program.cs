@@ -3,6 +3,7 @@ using Serilog;
 using System.Reflection;
 using ChatNet.Auth.BLL.Extensions;
 using ChatNet.Common.Extensions;
+using ChatNet.Common.Middlewares;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -65,5 +66,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.UseErrorHandleMiddleware();
 
 app.Run();

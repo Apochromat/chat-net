@@ -24,6 +24,11 @@ public class ProfileFullDto {
     public DateTime BirthDate { get; set; }
     
     /// <summary>
+    /// User`s phone number
+    /// </summary>
+    public string PhoneNumber { get; set; }
+    
+    /// <summary>
     /// Is user banned
     /// </summary>
     public Boolean IsBanned { get; set; }
@@ -38,8 +43,4 @@ public class ProfileFullDto {
     /// </summary>
     public Guid PhotoId { get; set; }
 
-    /// <summary>
-    /// User roles
-    /// </summary>
-    public List<string> Roles { get; set; } = new();
 }
