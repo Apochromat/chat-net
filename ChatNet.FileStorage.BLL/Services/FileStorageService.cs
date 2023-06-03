@@ -196,6 +196,7 @@ public class FileStorageService : IFileStorageService {
             throw new ForbiddenException("File can be edited only by its owner");
         }
 
+        file.UpdatedAt = DateTime.UtcNow;
         file.Name = fileEditDto.Name;
         file.Type = fileEditDto.Type;
 
@@ -261,6 +262,7 @@ public class FileStorageService : IFileStorageService {
             return;
         }
 
+        file.UpdatedAt = DateTime.UtcNow;
         file.Viewers.Add(userId);
         await _dbContext.SaveChangesAsync();
     }
@@ -288,7 +290,8 @@ public class FileStorageService : IFileStorageService {
 
             return;
         }
-
+        
+        file.UpdatedAt = DateTime.UtcNow;
         file.Viewers.Remove(userId);
         await _dbContext.SaveChangesAsync();
     }
@@ -318,8 +321,11 @@ public class FileStorageService : IFileStorageService {
                 continue;
             }
 
+            file.UpdatedAt = DateTime.UtcNow;
             file.Viewers.Add(userId);
         }
+        
+        await _dbContext.SaveChangesAsync();
     }
 
     /// <inheritdoc/>
@@ -347,8 +353,11 @@ public class FileStorageService : IFileStorageService {
                 continue;
             }
 
+            file.UpdatedAt = DateTime.UtcNow;
             file.Viewers.Remove(userId);
         }
+        
+        await _dbContext.SaveChangesAsync();
     }
 
     /// <inheritdoc/>
@@ -378,6 +387,9 @@ public class FileStorageService : IFileStorageService {
 
             file.Viewers.Add(userId);
         }
+        
+        file.UpdatedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync();
     }
 
     /// <inheritdoc/>
@@ -407,6 +419,9 @@ public class FileStorageService : IFileStorageService {
 
             file.Viewers.Remove(userId);
         }
+        
+        file.UpdatedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync();
     }
 
     private string Transliterate(string input) {
