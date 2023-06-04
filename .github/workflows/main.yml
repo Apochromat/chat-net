@@ -20,4 +20,4 @@ jobs:
       run: sudo docker network create external-network
       
     - name: Start docker
-      run: sudo docker-compose up
+      run: sudo docker-compose up -d
