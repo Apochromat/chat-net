@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ChatNet.Backend.API.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/backend")]
 public class ChatController : ControllerBase {
     private readonly ILogger<ChatController> _logger;
 

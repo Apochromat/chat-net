@@ -2,38 +2,69 @@
 services:
   gateway:
     build:
-      context: ./ChatNet.Gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ChatNet.Gateway/Dockerfile
     ports:
-      - 5253:5253
+      - "5253:5253"
     depends_on:
       - auth
-  auth:
-    build:
-      context: ./ChatNet.Auth.API
-      dockerfile: Dockerfile
-    ports:
-      - 5021:5021
-    depends_on:
-      - rabbitmq
-      - auth-postgres
+      - backend
+      - notification
+      - files
   rabbitmq:
     image: rabbitmq:3.8-management
     ports:
-      - 5672:5672
-      - 15672:15672
+      - "5672:5672"
+      - "15672:15672"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
-  auth-postgres:
+  postgres:
     image: postgres:latest
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - 5432:5432
+      - "5432:5432"
     volumes:
-      - auth_postgres_data:/var/lib/auth-postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+  auth:
+    build:
+      context: .
+      dockerfile: ChatNet.Auth.API/Dockerfile
+    ports:
+      - "5021:5021"
+    depends_on:
+      - rabbitmq
+      - postgres
+  backend:
+    build:
+      context: .
+      dockerfile: ChatNet.Backend.API/Dockerfile
+    ports:
+      - "5147:5147"
+    depends_on:
+      - rabbitmq
+      - postgres
+  notification:
+    build:
+      context: .
+      dockerfile: ChatNet.Notification.API/Dockerfile
+    ports:
+      - "5023:5023"
+    depends_on:
+      - rabbitmq
+      - postgres
+  files:
+    build:
+      context: .
+      dockerfile: ChatNet.FileStorage.API/Dockerfile
+    ports:
+      - "5056:5056"
+    depends_on:
+      - rabbitmq
+      - postgres
+
 
 volumes:
   rabbitmq_data:
-  auth_postgres_data:
+  postgres_data:
