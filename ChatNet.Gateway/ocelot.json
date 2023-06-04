@@ -9,7 +9,8 @@
           "Port": 5056
         }
       ],
-      "UpstreamPathTemplate": "/api/files/{everything}"
+      "UpstreamPathTemplate": "/api/files/{everything}",
+      "Priority": 0
     },
     {
       "DownstreamPathTemplate": "/api/files",
@@ -23,6 +24,30 @@
       "UpstreamPathTemplate": "/api/files"
     },
     {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5056
+        }
+      ],
+      "UpstreamPathTemplate": "/api/files/swagger/{everything}",
+      "Priority": 1
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5021
+        }
+      ],
+      "UpstreamPathTemplate": "/api/auth/swagger/{everything}",
+      "Priority": 1
+    },
+    {
       "DownstreamPathTemplate": "/api/auth/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
@@ -31,7 +56,8 @@
           "Port": 5021
         }
       ],
-      "UpstreamPathTemplate": "/api/auth/{everything}"
+      "UpstreamPathTemplate": "/api/auth/{everything}",
+      "Priority": 0
     }
   ]
 }
