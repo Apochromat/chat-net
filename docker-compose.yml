@@ -1,0 +1,39 @@
+﻿version: '3'
+services:
+  gateway:
+    build:
+      context: ./ChatNet.Gateway
+      dockerfile: Dockerfile
+    ports:
+      - 5253:5253
+    depends_on:
+      - auth
+  auth:
+    build:
+      context: ./ChatNet.Auth.API
+      dockerfile: Dockerfile
+    ports:
+      - 5021:5021
+    depends_on:
+      - rabbitmq
+      - auth-postgres
+  rabbitmq:
+    image: rabbitmq:3.8-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+  auth-postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - auth_postgres_data:/var/lib/auth-postgresql/data
+
+volumes:
+  rabbitmq_data:
+  auth_postgres_data:
