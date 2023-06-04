@@ -16,5 +16,8 @@ jobs:
     - name: Stop docker
       run: sudo docker-compose down
       
+    - name: Create network
+      run: sudo docker network create external-network
+      
     - name: Start docker
       run: sudo docker-compose up
