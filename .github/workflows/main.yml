@@ -1,0 +1,20 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: chat-runner
+    
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v2
+      
+    - name: Stop docker
+      run: sudo docker-compose down
+      
+    - name: Start docker
+      run: sudo docker-compose up
