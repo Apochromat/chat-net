@@ -13,6 +13,7 @@ public static class ServiceDependecyExtension {
             options.UseNpgsql(configuration.GetConnectionString("BackendDatabase")));
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IMessageService, MessageService>();
+        services.AddScoped<IPermissionCheckService, PermissionCheckService>();
         services.AddHostedService<BackendRecieverService>();
 
         return services;

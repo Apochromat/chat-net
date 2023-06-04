@@ -2,6 +2,7 @@ namespace ChatNet.Backend.DAL.Entities;
 
 public class Message {
     public Guid Id { get; set; } = Guid.NewGuid();
+    public Chat Chat { get; set; }
     public UserBackend User { get; set; }
     public string TextMessage { get; set; }
     public DateTime CreatedTime { get; set; } = DateTime.UtcNow;

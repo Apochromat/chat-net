@@ -14,29 +14,81 @@ public class ChatService: IChatService {
         _dbContext = dbContext;
     }
 
-    public async Task<ChatListDto> GetChatList(Guid userId) {
+    public async Task<ChatListDto> GetChatList(Guid userId, int page, int pageSize) {
         var user = await _dbContext.Users
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) throw new NotFoundException("user with this id does not found");
         var chats = await _dbContext.Chats
             .Where(c => c.Users
-                .Contains(user)
-            && !c.DeletedTime.HasValue)
+                .Contains(user))
+            .OrderBy(c => c.Messages.Max(m=>m.CreatedTime))
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
+        
+        var pagesAmount = (int)Math.Ceiling((double)chats.Count / pageSize);
+            
+        if (page > pagesAmount) {
+            throw new NotFoundException("Page not found");
+        }
         return new ChatListDto {
-            UserChats = chats.Select(c => new ChatShortDto {
+            UserChats = new Pagination<ChatShortDto>(chats.Select(c => new ChatShortDto {
                 Id = c.Id,
                 ChatAvatarId = c.ChatAvatarId,
-                ChatName = c.ChatName
-            }).ToList()
+                ChatName = c.ChatName,
+                DeletedTime = c.DeletedTime //?? null
+            }).ToList(),page, pageSize, pagesAmount)
         };
-        return null;
     }
-//TODO 
-    public async Task<ChatFullDto> GetChatWithMessages(Guid chatId) {
-        throw new NotImplementedException();
+    public async Task<ChatFullDto> GetChatWithMessages(Guid chatId, int page, int pageSize) {
+        if (page < 1) {
+            throw new ArgumentException("Page must be greater than 0");
+        }
+
+        if (pageSize < 1) {
+            throw new ArgumentException("Page size must be greater than 0");
+        }
+
+        var chatWithUsers = await _dbContext.Chats
+            .Include(c => c.Users)
+            .FirstOrDefaultAsync(c => c.Id == chatId);
+        
+        if (chatWithUsers == null)
+            throw new NotFoundException("chat with this id does not found");
+
+        var chatMessages = await _dbContext.Chats
+            .Where(c => c.Id == chatId)
+            .SelectMany(c => c.Messages
+                .OrderByDescending(m => m.CreatedTime)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(m => new MessageDto {
+                    Id = m.Id,
+                    SenderId = m.User.Id,
+                    TextMessage = m.TextMessage,
+                    CreatedTime = m.CreatedTime,
+                    EditedTime = m.EditedTime,
+                    FileIds = m.Files
+                })
+            ).ToListAsync();
+        
+            var pagesAmount = (int)Math.Ceiling((double)chatMessages.Count / pageSize);
+            
+        if (page > pagesAmount) {
+            throw new NotFoundException("Page not found");
+        }
+
+        var response = new ChatFullDto {
+            Id = chatWithUsers.Id,
+            ChatName = chatWithUsers.ChatName,
+            ChatAvatarId = chatWithUsers.ChatAvatarId,
+            CreatedTime = chatWithUsers.CreatedTime,
+            DeletedTime = chatWithUsers.DeletedTime,
+            Messages = new Pagination<MessageDto>(chatMessages, page, pageSize, pagesAmount),
+            Users = chatWithUsers.Users.Select(u => u.Id).ToList()
+        };
+        return response;
     }
-//TODO 
     public async Task LeavePrivateChat(Guid userId, Guid chatId) {
         var user = await _dbContext.Users
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -45,25 +97,40 @@ public class ChatService: IChatService {
         var chat = await _dbContext.PrivateChats
             .FirstOrDefaultAsync(c => c.Id == chatId);
         if (chat == null) throw new NotFoundException("Chat with this id not found");
-       // chat.Users.Remove(userId);
+        user.Chats.Remove(chat);
         await _dbContext.SaveChangesAsync();
     }
-//TODO 
     public async Task LeaveGroupChat(Guid userId, Guid chatId) {
-        throw new NotImplementedException();
+        var user = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) throw new NotFoundException("user with this id does not found");
+        
+        var chat = await _dbContext.GroupChats
+            .FirstOrDefaultAsync(c => c.Id == chatId);
+        if (chat == null) throw new NotFoundException("Chat with this id not found");
+        if (chat.Administrators.Count <= 1 && chat.Administrators.Contains(user))
+            throw new MethodNotAllowedException("the user cannot leave the chat while he is the only admin");
+        user.Chats.Remove(chat);
+        await _dbContext.SaveChangesAsync();    
     }
 
-    public async Task CreatePrivateChat(ChatCreateDto chatModel) {
-        var users = await _dbContext.Users
-            .Where(u => chatModel.Users
-                .Contains(u.Id))
-            .ToListAsync();
-        if (chatModel.Users == null || users.Count != 2)
-            throw new BadRequestException("private chat can exist only with 2 users");
+    public async Task CreatePrivateChat(ChatPrivateCreateDto chatModel , Guid creatorId) {
+        var creator = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == creatorId);
+        if (creator == null) 
+            throw new NotFoundException("creator with this id does not found");
+        var user = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == chatModel.UserId);
+        if (user == null) 
+            throw new NotFoundException("creator with this id does not found");
+        
         var chat = new PrivateChat {
             ChatAvatarId = chatModel.AvatarId,
             ChatName = chatModel.ChatName,
-            Users = users,
+            Users = new List<UserBackend> {
+                user, 
+                creator,
+            },
         };
         await _dbContext.AddAsync(chat);
         await _dbContext.SaveChangesAsync();
@@ -78,37 +145,45 @@ public class ChatService: IChatService {
             .Where(u => chatModel.Users
                 .Contains(u.Id))
             .ToListAsync();
-        if (chatModel.Users == null || users.Count < 2 )
+        if (chatModel.Users == null || users.Count < 1 )
             throw new BadRequestException("Group chat can exist only with more than 1 user");
         var chat = new GroupChat {
             ChatAvatarId = chatModel.AvatarId,
             ChatName = chatModel.ChatName,
             Users = users
         };
+        chat.Users.Add(admin);
         chat.Administrators.Add(admin);
         await _dbContext.AddAsync(chat);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task AddUserToGroupChat(ChatUserActionsDto model) {
+    public async Task AddUserToGroupChat(Guid chatId , Guid userId) {
         var user = await _dbContext.Users
-            .FirstOrDefaultAsync(u => u.Id == model.UserId);
+            .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) 
             throw new NotFoundException("user with this id does not found");
         var chat = await _dbContext.Chats
-            .FirstOrDefaultAsync(c => c.Id == model.ChatId);
+            .Include(c=>c.Users)
+            .FirstOrDefaultAsync(c => 
+                !c.DeletedTime.HasValue
+                && c.Id == chatId);
         if (chat == null) 
             throw new NotFoundException("Chat with this id not found");
+        if (chat.Users.Contains(user))
+            throw new MethodNotAllowedException("this user is already in this chat");
         user.Chats.Add(chat);
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteUserFromGroupChat(ChatUserActionsDto model) {
+    public async Task DeleteUserFromGroupChat(Guid chatId , Guid userId) {
         var chat = await _dbContext.Chats
-            .FirstOrDefaultAsync(c => c.Id == model.ChatId);
+            .FirstOrDefaultAsync(c => 
+                !c.DeletedTime.HasValue
+                && c.Id == chatId);
         if (chat == null) throw new NotFoundException("Chat with this id not found");
         var user = await _dbContext.Users
-            .FirstOrDefaultAsync(u => u.Id == model.UserId);
+            .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) throw new NotFoundException("user with this id does not found");
         if (!user.Chats.Contains(chat))
             throw new BadRequestException("User with this Id does not contains in this chat");
@@ -118,18 +193,44 @@ public class ChatService: IChatService {
 
     public async Task EditChat(ChatEditDto model, Guid chatId) {
         var chat = await _dbContext.Chats
-            .FirstOrDefaultAsync(c => c.Id == chatId);
+            .FirstOrDefaultAsync(c => 
+                !c.DeletedTime.HasValue
+                && c.Id == chatId);
         if (chat == null) throw new NotFoundException("Chat with this id not found");
         chat.ChatAvatarId = model.AvatarId;
         chat.ChatName = model.ChatName;
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task DeleteGroupChat(Guid chatId) {
+    public async Task DeleteGroupChat(Guid chatId , Guid adminId) {
+        var admin = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == adminId);
+        if (admin == null) throw new NotFoundException("user with this id does not found");
         var chat = await _dbContext.GroupChats
-            .FirstOrDefaultAsync(c => c.Id == chatId);
+            .FirstOrDefaultAsync(c => 
+                !c.DeletedTime.HasValue
+                && c.Id == chatId);
         if (chat == null) throw new NotFoundException("Group chat with this id not found");
         chat.DeletedTime = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task MakeUserAdmin(Guid chatId, Guid adminId , Guid newAdminId) {
+        var admin = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == adminId);
+        if (admin == null) throw new NotFoundException("user with this id does not found");
+        var newAdmin = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == newAdminId);
+        if (newAdmin == null) throw new NotFoundException("new admin with this id does not found");
+        var chat = await _dbContext.GroupChats
+            .Include(c=>c.Administrators)
+            .FirstOrDefaultAsync(c => 
+                !c.DeletedTime.HasValue
+                && c.Id == chatId);
+        if (chat == null) throw new NotFoundException("Group chat with this id not found");
+        if (chat.Administrators.Contains(newAdmin)) 
+            throw new BadRequestException("this user is already admin");
+        chat.Administrators.Add(newAdmin);
         await _dbContext.SaveChangesAsync();
     }
 }
