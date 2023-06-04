@@ -5,7 +5,10 @@ services:
       context: .
       dockerfile: ChatNet.Gateway/Dockerfile
     ports:
-      - "5253:5253"
+      - "5253:80"
+    networks:
+      - internal-network
+      - external-network
     depends_on:
       - auth
       - backend
@@ -16,6 +19,8 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+    networks:
+      - internal-network
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
   postgres:
@@ -25,6 +30,8 @@ services:
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
+    networks:
+      - internal-network
     volumes:
       - postgres_data:/var/lib/postgresql/data
   auth:
@@ -32,7 +39,11 @@ services:
       context: .
       dockerfile: ChatNet.Auth.API/Dockerfile
     ports:
-      - "5021:5021"
+      - "5021:80"
+    environment:
+      - CONNECTIONSTRINGS__AUTHDATABASE=User ID=postgres;Password=postgres;Host=postgres;Port=5432;Database=chat-auth-db
+    networks:
+      - internal-network
     depends_on:
       - rabbitmq
       - postgres
@@ -41,7 +52,9 @@ services:
       context: .
       dockerfile: ChatNet.Backend.API/Dockerfile
     ports:
-      - "5147:5147"
+      - "5147:80"
+    networks:
+      - internal-network
     depends_on:
       - rabbitmq
       - postgres
@@ -50,7 +63,9 @@ services:
       context: .
       dockerfile: ChatNet.Notification.API/Dockerfile
     ports:
-      - "5023:5023"
+      - "5023:80"
+    networks:
+      - internal-network
     depends_on:
       - rabbitmq
       - postgres
@@ -59,7 +74,11 @@ services:
       context: .
       dockerfile: ChatNet.FileStorage.API/Dockerfile
     ports:
-      - "5056:5056"
+      - "5056:80"
+    environment:
+      - CONNECTIONSTRINGS__FILESTORAGEDATABASE=User ID=postgres;Password=postgres;Host=postgres;Port=5432;Database=chat-files-db
+    networks:
+      - internal-network
     depends_on:
       - rabbitmq
       - postgres
@@ -68,3 +87,8 @@ services:
 volumes:
   rabbitmq_data:
   postgres_data:
+
+networks:
+  internal-network:
+  external-network:
+    external: true
