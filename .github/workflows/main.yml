@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy:
-    runs-on: chat-runner
+    runs-on: self-hosted
     
     steps:
     - name: Checkout source code
