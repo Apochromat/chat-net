@@ -1,0 +1,103 @@
+﻿{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/files",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "files",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/files"
+    },
+    {
+      "DownstreamPathTemplate": "/api/files/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "files",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/files/{everything}",
+      "Priority": 0
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "files",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/files/swagger/{everything}",
+      "Priority": 1
+    },
+
+
+    {
+      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "auth",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/auth/{everything}",
+      "Priority": 0
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "auth",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/auth/swagger/{everything}",
+      "Priority": 1
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/backend/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "backend",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/backend/{everything}",
+      "Priority": 0
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "backend",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/backend/swagger/{everything}",
+      "Priority": 1
+    },
+
+    {
+      "DownstreamPathTemplate": "/api/notification/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notification",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notification/{everything}"
+    }
+
+  ]
+}
