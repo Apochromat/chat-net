@@ -3,17 +3,39 @@ using System.Text.Json;
 using ChatNet.Common.DataTransferObjects;
 using Microsoft.AspNetCore.SignalR.Client;
 
-const string notificationHubUrl = "http://localhost:5253/api/notification/hub";
-const string loginUrl = "http://localhost:5253/api/auth/login";
+const string localNotificationHubUrl = "http://localhost:5253/api/notification/hub";
+const string localLoginUrl = "http://localhost:5253/api/auth/login";
+
+const string productionNotificationHubUrl = "http://chat.markridge.space/api/notification/hub";
+const string productionLoginUrl = "http://chat.markridge.space/api/auth/login";
 
 var loginCredentials = new Dictionary<string, string?>() {
     { "email", "user@example.com" },
     { "password", "P@ssw0rd" }
 };
 
+var notificationHubUrl = localNotificationHubUrl;
+var loginUrl = localLoginUrl;
+
+Console.WriteLine("Do you want to run in production mode? (y/n)");
+var mode = Console.ReadKey().Key;
+while (mode != ConsoleKey.N) {
+    Console.WriteLine();
+    if (mode != ConsoleKey.Y) {
+        Console.WriteLine("Do you want to run in production mode? (y/n)");
+        mode = Console.ReadKey().Key;
+        continue;
+    }
+    
+    notificationHubUrl = productionNotificationHubUrl;
+    loginUrl = productionLoginUrl;
+    break;
+}
+
 Console.WriteLine("Do you want to login with your credentials? (y/n)");
 var key = Console.ReadKey().Key;
 while (key != ConsoleKey.N) {
+    Console.WriteLine();
     if (key != ConsoleKey.Y) {
         Console.WriteLine("Do you want to login with your credentials? (y/n)");
         key = Console.ReadKey().Key;
