@@ -4,9 +4,9 @@ using ChatNet.Common.Enumerations;
 namespace ChatNet.Common.DataTransferObjects; 
 
 /// <summary>
-/// Data transfer object for online preferences
+/// Data transfer object for online preferences 
 /// </summary>
-public class OnlinePreferenceDto {
+public class OnlinePreferenceFullDto {
     /// <summary>
     /// Identifier of the user
     /// </summary>

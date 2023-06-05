@@ -16,8 +16,7 @@ public interface INotificationQueueService {
     /// <summary>
     /// Sends online preference to notification component
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="onlinePreferenceDto"></param>
+    /// <param name="onlinePreferenceFriendsDto"></param>
     /// <returns></returns>
-    Task SendOnlinePreferenceAsync(Guid userId, OnlinePreferenceDto onlinePreferenceDto);
+    Task SendOnlinePreferenceAsync(OnlinePreferenceFriendsDto onlinePreferenceFriendsDto);
 }

@@ -7,16 +7,24 @@ namespace ChatNet.Common.Interfaces;
 /// </summary>
 public interface IOnlinePreferencesManagerService {
     /// <summary>
-    /// Sets user's online preferences
+    /// Sets user's online preferences (only friends list)
     /// </summary>
-    /// <param name="preferenceDto"></param>
+    /// <param name="preferenceFriendsDto"></param>
     /// <returns></returns>
-    Task SetPreferenceAsync(OnlinePreferenceDto preferenceDto);
+    Task SetPreferenceFriendsAsync(OnlinePreferenceFriendsDto preferenceFriendsDto);
+
+    /// <summary>
+    /// Sets user's online preferences (only type)
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="preferenceTypeDto"></param>
+    /// <returns></returns>
+    Task SetPreferenceTypeAsync(Guid userId, OnlinePreferenceTypeDto preferenceTypeDto);
     
     /// <summary>
     /// Gets user's online preferences
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    Task<OnlinePreferenceDto?> GetPreferenceAsync(Guid userId);
+    Task<OnlinePreferenceFullDto?> GetPreferenceAsync(Guid userId);
 }

@@ -57,12 +57,12 @@ public class RabbitMqPreferencesListenerService : BackgroundService {
         consumer.Received += async (_, eventArgs) => {
             try {
                 var rawMessage = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-                var preferenceDto = JsonSerializer.Deserialize<OnlinePreferenceDto>(rawMessage);
+                var preferenceDto = JsonSerializer.Deserialize<OnlinePreferenceFriendsDto>(rawMessage);
                 if (preferenceDto == null) throw new InvalidOperationException();
 
                 using (var scope = _serviceScopeFactory.CreateScope()) {
                     var onlinePreferencesManager = scope.ServiceProvider.GetRequiredService<IOnlinePreferencesManagerService>();
-                    await onlinePreferencesManager.SetPreferenceAsync(preferenceDto);
+                    await onlinePreferencesManager.SetPreferenceFriendsAsync(preferenceDto);
                 }
 
                 _logger.LogInformation($"Received message");
