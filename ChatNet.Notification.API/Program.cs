@@ -47,6 +47,7 @@ builder.Logging.AddSerilog(logger);
 var app = builder.Build();
 
 await app.MigrateDbAsync();
+await app.CloseOpenedConnectionsAsync();
 
 app.UseCors();
 
