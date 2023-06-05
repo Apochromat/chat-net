@@ -1,4 +1,4 @@
-﻿version: '3'
+version: '3'
 services:
   gateway:
     build:
@@ -47,6 +47,8 @@ services:
     depends_on:
       - rabbitmq
       - postgres
+    volumes:
+      - ./home/runner/logs/auth:./logs
   backend:
     build:
       context: .
@@ -58,6 +60,8 @@ services:
     depends_on:
       - rabbitmq
       - postgres
+    volumes:
+      - ./home/runner/logs/backend:./logs
   notification:
     build:
       context: .
@@ -69,6 +73,8 @@ services:
     depends_on:
       - rabbitmq
       - postgres
+    volumes:
+      - ./home/runner/logs/notification:./logs
   files:
     build:
       context: .
@@ -82,7 +88,8 @@ services:
     depends_on:
       - rabbitmq
       - postgres
-
+    volumes:
+      - ./home/runner/logs/files:./logs
 
 volumes:
   rabbitmq_data:
