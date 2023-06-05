@@ -41,20 +41,21 @@ void Print(string message) {
     }
 
     Console.WriteLine();
-    Console.WriteLine("New Message:");
 
     var type = obj.GetType();
     var properties = type.GetProperties();
-
-    Console.WriteLine("Property\tValue");
-    Console.WriteLine("-----------------------");
+    
+    string separator = new string('-', properties.Select(x=>x.ToString()).MaxBy(x=>x.Length).Length + 2);
+    Console.WriteLine("New Message:");
+    Console.WriteLine(separator);
 
     foreach (var property in properties) {
         var propertyName = property.Name;
         var propertyValue = (property.GetValue(obj) ?? "null").ToString();
 
-        Console.WriteLine($"{propertyName}\t{propertyValue}");
+        Console.WriteLine($"{propertyName, -12}:\t{propertyValue}");
     }
+    Console.WriteLine(separator);
 }
 
 connection.On("ReceiveMessage", (Action<string>)Print);

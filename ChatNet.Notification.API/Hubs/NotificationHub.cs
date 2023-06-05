@@ -75,6 +75,17 @@ public class NotificationHub : Hub {
         }
 
         await base.OnConnectedAsync();
+        
+        var nnn = new NotificationMessageDto() {
+            ReceiverId = Guid.Empty,
+            SenderId = Guid.Parse(Context.UserIdentifier),
+            Type = NotificationMessageType.UserOffline,
+            Title = "User offline",
+            Text = "User became offline",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await Clients.All.SendAsync("ReceiveMessage", JsonSerializer.Serialize(nnn));
     }
 
     /// <summary>
