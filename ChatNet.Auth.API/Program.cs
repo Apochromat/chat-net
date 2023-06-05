@@ -41,7 +41,7 @@ builder.Services.AddSwaggerGen(option => {
 });
 
 builder.Services.AddAuthorization();
-builder.Services.AddJwtAuthorisation(builder.Configuration);
+builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddAuthBlServiceDependencies(builder.Configuration);
 builder.Services.AddAuthBlServiceIdentityDependencies();
 
