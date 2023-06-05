@@ -3,8 +3,8 @@ using System.Text.Json;
 using ChatNet.Common.DataTransferObjects;
 using Microsoft.AspNetCore.SignalR.Client;
 
-const string notificationHubUrl = "http://localhost:5023/api/notification/hub";
-const string loginUrl = "http://localhost:5021/api/auth/login";
+const string notificationHubUrl = "http://localhost:5253/api/notification/hub";
+const string loginUrl = "http://localhost:5253/api/auth/login";
 
 var loginCredentials = new Dictionary<string, string?>() {
     { "email", "user@example.com" },

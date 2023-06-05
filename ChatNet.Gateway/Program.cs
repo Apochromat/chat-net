@@ -19,6 +19,7 @@ app.UseAuthorization();
 app.UseRouting();
 app.MapControllers();
 
+app.UseWebSockets();
 app.UseOcelot().Wait();
 
 app.Run();

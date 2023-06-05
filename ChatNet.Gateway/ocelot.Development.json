@@ -35,8 +35,6 @@
       "UpstreamPathTemplate": "/api/files/swagger/{everything}",
       "Priority": 1
     },
-
-
     {
       "DownstreamPathTemplate": "/api/auth/{everything}",
       "DownstreamScheme": "http",
@@ -61,7 +59,6 @@
       "UpstreamPathTemplate": "/api/auth/swagger/{everything}",
       "Priority": 1
     },
-
     {
       "DownstreamPathTemplate": "/api/backend/{everything}",
       "DownstreamScheme": "http",
@@ -86,7 +83,6 @@
       "UpstreamPathTemplate": "/api/backend/swagger/{everything}",
       "Priority": 1
     },
-
     {
       "DownstreamPathTemplate": "/api/notification/{everything}",
       "DownstreamScheme": "http",
@@ -96,8 +92,44 @@
           "Port": 5023
         }
       ],
-      "UpstreamPathTemplate": "/api/notification/{everything}"
+      "UpstreamPathTemplate": "/api/notification/{everything}",
+      "Priority": 0
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5023
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notification/swagger/{everything}",
+      "Priority": 1
+    },
+    {
+      "DownstreamPathTemplate": "/api/notification/hub",
+      "DownstreamScheme": "ws",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5023
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notification/hub",
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/api/notification/hub/{path}",
+      "DownstreamScheme": "ws",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5023
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notification/hub/{path}",
+      "Priority": 2
     }
-    
   ]
 }
