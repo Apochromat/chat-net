@@ -48,7 +48,7 @@ services:
       - rabbitmq
       - postgres
     volumes:
-      - ./home/runner/logs/auth:./logs
+      - ./logs:./logs
   backend:
     build:
       context: .
@@ -61,7 +61,7 @@ services:
       - rabbitmq
       - postgres
     volumes:
-      - ./home/runner/logs/backend:./logs
+      - ./logs:./logs
   notification:
     build:
       context: .
@@ -74,7 +74,7 @@ services:
       - rabbitmq
       - postgres
     volumes:
-      - ./home/runner/logs/notification:./logs
+      - ./logs:./logs
   files:
     build:
       context: .
@@ -89,7 +89,7 @@ services:
       - rabbitmq
       - postgres
     volumes:
-      - ./home/runner/logs/files:./logs
+      - ./logs:./logs
 
 volumes:
   rabbitmq_data:
