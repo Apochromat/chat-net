@@ -54,5 +54,5 @@ public class NotificationMessage {
     /// <summary>
     /// Message delivery date
     /// </summary>
-    public DateTime? DeliveredAt { get; set; } = null;
+    public DateTime? DeliveredAt { get; set; }
 }

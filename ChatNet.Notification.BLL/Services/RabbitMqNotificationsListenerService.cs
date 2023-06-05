@@ -72,7 +72,8 @@ public class RabbitMqNotificationsListenerService : BackgroundService {
                         SenderId = message.SenderId,
                         ChatId = message.ChatId,
                         CallId = message.CallId,
-                        CreatedAt = DateTime.Now
+                        CreatedAt = DateTime.UtcNow,
+                        DeliveredAt = null
                     }, stoppingToken);
 
                     await dbContext.SaveChangesAsync(stoppingToken);
