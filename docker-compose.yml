@@ -48,7 +48,7 @@ services:
       - rabbitmq
       - postgres
     volumes:
-      - /home/runner/logs-auth:/app/logs
+      - /var/log/chat-net/auth:/app/logs
   backend:
     build:
       context: .
@@ -61,7 +61,7 @@ services:
       - rabbitmq
       - postgres
     volumes:
-      - /home/runner/logs-backend:/app/logs
+      - /var/log/chat-net/backend:/app/logs
   notification:
     build:
       context: .
@@ -74,7 +74,7 @@ services:
       - rabbitmq
       - postgres
     volumes:
-      - /home/runner/logs-notification:/app/logs
+      - /var/log/chat-net/notification:/app/logs
   files:
     build:
       context: .
@@ -89,7 +89,7 @@ services:
       - rabbitmq
       - postgres
     volumes:
-      - /home/runner/logs-files:/app/logs
+      - /var/log/chat-net/files:/app/logs
 
 volumes:
   rabbitmq_data:
