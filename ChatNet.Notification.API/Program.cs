@@ -37,7 +37,7 @@ builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
 builder.Services.AddSignalR();
 
 // Quartz
-builder.Services.ConfigureQuartz();
+builder.Services.ConfigureQuartz(builder.Configuration);
 
 // Serilog
 var logger = new LoggerConfiguration()

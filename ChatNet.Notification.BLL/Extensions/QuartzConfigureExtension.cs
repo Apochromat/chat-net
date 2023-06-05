@@ -1,4 +1,5 @@
 ﻿using ChatNet.Notification.BLL.Jobs;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 
@@ -12,20 +13,34 @@ public static class QuartzConfigureExtension {
     /// Quartz configuration.
     /// </summary>
     /// <param name="services"></param>
+    /// <param name="configuration"></param>
     /// <returns></returns>
-    public static IServiceCollection ConfigureQuartz(this IServiceCollection services) {
+    public static IServiceCollection ConfigureQuartz(this IServiceCollection services, IConfiguration configuration) {
         services.AddQuartz(q => {
             q.UseMicrosoftDependencyInjectionJobFactory();
             
-            var jobKey = new JobKey("NotificationSendingJob");
-            q.AddJob<NotificationMessagesSendingJob>(opts => opts.WithIdentity(jobKey));
+            var notificationMessagesSendingJobKey = new JobKey("NotificationMessagesSendingJob");
+            q.AddJob<NotificationMessagesSendingJob>(opts => opts.WithIdentity(notificationMessagesSendingJobKey));
 
             q.AddTrigger(opts => opts
-                .ForJob(jobKey)
-                .WithIdentity("NotificationSendingJob-trigger")
-                //This Cron interval can be described as "run every minute" (when second is zero)
-                .WithCronSchedule("0 * * ? * *")
+                .ForJob(notificationMessagesSendingJobKey)
+                .WithIdentity("NotificationMessagesSendingJob-trigger")
+                .WithCronSchedule(configuration.GetSection("Jobs")
+                    .GetSection("NotificationMessagesSendingJob")
+                    .GetValue<string>("CronExpression") ?? "* */5 * ? * *")
             );
+            
+            var connectionClearJobKey = new JobKey("ConnectionClearJob");
+            q.AddJob<ConnectionClearJob>(opts => opts.WithIdentity(connectionClearJobKey));
+
+            q.AddTrigger(opts => opts
+                .ForJob(connectionClearJobKey)
+                .WithIdentity("ConnectionClearJob-trigger")
+                .WithCronSchedule(configuration.GetSection("Jobs")
+                    .GetSection("ConnectionClearJob")
+                    .GetValue<string>("CronExpression") ?? "* */5 * ? * *")
+            );
+            
         });
         services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
         return services;
