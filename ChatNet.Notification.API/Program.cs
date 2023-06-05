@@ -1,5 +1,6 @@
 using ChatNet.Common.Extensions;
 using ChatNet.Common.Interfaces;
+using ChatNet.Notification.API.Hubs;
 using ChatNet.Notification.API.Services;
 using ChatNet.Notification.BLL.Extensions;
 using Microsoft.AspNetCore.SignalR;
@@ -11,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options => {
     options.AddDefaultPolicy(
         policy => {
-            policy.AllowAnyOrigin()
+            policy.WithOrigins("null")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials()
@@ -58,5 +59,6 @@ app.UseAuthorization();
 app.UseAuthentication();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("api/notification/hub");
 
 app.Run();
