@@ -26,7 +26,7 @@ public class ProfileFullDto {
     /// <summary>
     /// User`s phone number
     /// </summary>
-    public string PhoneNumber { get; set; }
+    public required string PhoneNumber { get; set; }
     
     /// <summary>
     /// Is user banned

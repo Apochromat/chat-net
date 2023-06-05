@@ -1,7 +1,4 @@
-﻿using ChatNet.Common.Enumerations;
-using Microsoft.AspNetCore.Http;
-
-namespace ChatNet.Common.DataTransferObjects; 
+﻿namespace ChatNet.Common.DataTransferObjects; 
 
 /// <summary>
 /// DTO for file download
