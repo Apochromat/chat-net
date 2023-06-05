@@ -9,7 +9,8 @@
           "Port": 5056
         }
       ],
-      "UpstreamPathTemplate": "/api/files"
+      "UpstreamPathTemplate": "/api/files",
+      "SwaggerKey": "files"
     },
     {
       "DownstreamPathTemplate": "/api/files/{everything}",
@@ -21,22 +22,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/files/{everything}",
+      "SwaggerKey": "files",
       "Priority": 0
     },
-    {
-      "DownstreamPathTemplate": "/swagger/{everything}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5056
-        }
-      ],
-      "UpstreamPathTemplate": "/api/files/swagger/{everything}",
-      "Priority": 1
-    },
-
-
     {
       "DownstreamPathTemplate": "/api/auth/{everything}",
       "DownstreamScheme": "http",
@@ -47,21 +35,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/auth/{everything}",
+      "SwaggerKey": "auth",
       "Priority": 0
     },
-    {
-      "DownstreamPathTemplate": "/swagger/{everything}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5021
-        }
-      ],
-      "UpstreamPathTemplate": "/api/auth/swagger/{everything}",
-      "Priority": 1
-    },
-
     {
       "DownstreamPathTemplate": "/api/backend/{everything}",
       "DownstreamScheme": "http",
@@ -72,21 +48,9 @@
         }
       ],
       "UpstreamPathTemplate": "/api/backend/{everything}",
+      "SwaggerKey": "backend",
       "Priority": 0
     },
-    {
-      "DownstreamPathTemplate": "/swagger/{everything}",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5147
-        }
-      ],
-      "UpstreamPathTemplate": "/api/backend/swagger/{everything}",
-      "Priority": 1
-    },
-
     {
       "DownstreamPathTemplate": "/api/notification/{everything}",
       "DownstreamScheme": "http",
@@ -96,8 +60,101 @@
           "Port": 5023
         }
       ],
-      "UpstreamPathTemplate": "/api/notification/{everything}"
+      "UpstreamPathTemplate": "/api/notification/{everything}",
+      "SwaggerKey": "notification",
+      "Priority": 0
+    },
+    {
+      "DownstreamPathTemplate": "/api/notification/hub",
+      "DownstreamScheme": "ws",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5023
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notification/hub",
+      "SwaggerKey": "notification",
+      "Priority": 1
+    },
+    {
+      "DownstreamPathTemplate": "/api/notification/hub/{path}",
+      "DownstreamScheme": "ws",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5023
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notification/hub/{path}",
+      "SwaggerKey": "notification",
+      "Priority": 1
+    },
+    {
+      "DownstreamPathTemplate": "/swagger",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5253
+        }
+      ],
+      "UpstreamPathTemplate": "/api/swagger",
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5253
+        }
+      ],
+      "UpstreamPathTemplate": "/api/swagger/{everything}",
+      "Priority": 3
     }
-    
+  ],
+  "SwaggerEndPoints": [
+    {
+      "Key": "auth",
+      "Config": [
+        {
+          "Name": "Auth API",
+          "Version": "v1",
+          "Url": "http://localhost:5021/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "files",
+      "Config": [
+        {
+          "Name": "Files API",
+          "Version": "v1",
+          "Url": "http://localhost:5056/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "backend",
+      "Config": [
+        {
+          "Name": "Backend API",
+          "Version": "v1",
+          "Url": "http://localhost:5147/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "notification",
+      "Config": [
+        {
+          "Name": "Notification API",
+          "Version": "v1",
+          "Url": "http://localhost:5023/swagger/v1/swagger.json"
+        }
+      ]
+    }
   ]
 }

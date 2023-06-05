@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatNet.FileStorage.DAL", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatNet.Gateway", "ChatNet.Gateway\ChatNet.Gateway.csproj", "{A9D8AFB4-62B7-43E2-8623-3E5C93C7C735}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatNet.Notification.Client", "ChatNet.Notification.Client\ChatNet.Notification.Client.csproj", "{2B68A871-A09D-4AF4-B5EE-4E23A82AE99B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,5 +92,9 @@ Global
 		{A9D8AFB4-62B7-43E2-8623-3E5C93C7C735}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A9D8AFB4-62B7-43E2-8623-3E5C93C7C735}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A9D8AFB4-62B7-43E2-8623-3E5C93C7C735}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B68A871-A09D-4AF4-B5EE-4E23A82AE99B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B68A871-A09D-4AF4-B5EE-4E23A82AE99B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B68A871-A09D-4AF4-B5EE-4E23A82AE99B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B68A871-A09D-4AF4-B5EE-4E23A82AE99B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

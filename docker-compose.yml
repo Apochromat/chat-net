@@ -55,6 +55,8 @@ services:
       dockerfile: ChatNet.Backend.API/Dockerfile
     ports:
       - "5147:80"
+    environment:
+      - RABBITMQ__HOSTNAME=rabbitmq
     networks:
       - internal-network
     depends_on:
@@ -68,6 +70,9 @@ services:
       dockerfile: ChatNet.Notification.API/Dockerfile
     ports:
       - "5023:80"
+    environment:
+      - RABBITMQ__HOSTNAME=rabbitmq
+      - CONNECTIONSTRINGS__NOTIFICATIONDATABASE=User ID=postgres;Password=postgres;Host=postgres;Port=5432;Database=chat-notification-db
     networks:
       - internal-network
     depends_on:

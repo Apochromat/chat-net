@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
 using ChatNet.Common.Extensions;
+using ChatNet.Common.Middlewares;
 using ChatNet.FileStorage.BLL.Extensions;
 using Microsoft.OpenApi.Models;
 using Serilog;
@@ -57,7 +58,7 @@ var logger = new LoggerConfiguration()
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(logger);
 
-builder.Services.AddJwtAuthorisation(builder.Configuration);
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
 var app = builder.Build();
 
@@ -74,5 +75,7 @@ app.UseAuthorization();
 app.UseAuthentication();
 
 app.MapControllers();
+
+app.UseErrorHandleMiddleware();
 
 app.Run();

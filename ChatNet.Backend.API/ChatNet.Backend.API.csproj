@@ -21,4 +21,9 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\ChatNet.Backend.BLL\ChatNet.Backend.BLL.csproj" />
+      <ProjectReference Include="..\ChatNet.Common\ChatNet.Common.csproj" />
+    </ItemGroup>
+
 </Project>
