@@ -20,7 +20,7 @@ public class NotificationQueueService : INotificationQueueService {
     }
     
     public Task SendNotificationAsync(NotificationMessageDto notificationMessageDto) {
-        var factory = new ConnectionFactory() { HostName = _configuration["RabbitMQ:HostName"] };
+        var factory = new ConnectionFactory() { HostName = _configuration["RabbitMQ:Hostname"] };
         try {
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
@@ -34,14 +34,14 @@ public class NotificationQueueService : INotificationQueueService {
                 basicProperties: null,
                 body: body);
         }
-        catch (Exception) {
-            // ignored
+        catch (Exception e) {
+            throw;
         }
         return Task.CompletedTask;
     }
 
     public Task SendOnlinePreferenceAsync(Guid userId, OnlinePreferenceDto onlinePreferenceDto) {
-        var factory = new ConnectionFactory() { HostName = _configuration["RabbitMQ:HostName"] };
+        var factory = new ConnectionFactory() { HostName = _configuration["RabbitMQ:Hostname"] };
         try {
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
