@@ -6,6 +6,7 @@ services:
       dockerfile: ChatNet.Gateway/Dockerfile
     ports:
       - "5253:80"
+    restart: on-failure
     networks:
       - internal-network
       - external-network
@@ -38,6 +39,7 @@ services:
     build:
       context: .
       dockerfile: ChatNet.Auth.API/Dockerfile
+    restart: on-failure
     ports:
       - "5021:80"
     environment:
@@ -53,6 +55,7 @@ services:
     build:
       context: .
       dockerfile: ChatNet.Backend.API/Dockerfile
+    restart: on-failure
     ports:
       - "5147:80"
     environment:
@@ -68,6 +71,7 @@ services:
     build:
       context: .
       dockerfile: ChatNet.Notification.API/Dockerfile
+    restart: on-failure
     ports:
       - "5023:80"
     environment:
@@ -84,6 +88,7 @@ services:
     build:
       context: .
       dockerfile: ChatNet.FileStorage.API/Dockerfile
+    restart: on-failure
     ports:
       - "5056:80"
     environment:
