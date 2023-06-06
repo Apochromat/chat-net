@@ -6,6 +6,6 @@ public class ChatFullDto {
     public Guid? ChatAvatarId { get; set; }
     public DateTime CreatedTime { get; set; }
     public DateTime? DeletedTime { get; set; }
-    public Pagination<MessageDto> Messages { get; set; }
-    public List<Guid> Users { get; set; }
+    public List<Guid> FileIds { get; set; } = new List<Guid>();
+    public List<Guid> Users { get; set; } = new List<Guid>();
 }

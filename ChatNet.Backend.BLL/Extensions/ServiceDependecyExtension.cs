@@ -14,6 +14,7 @@ public static class ServiceDependecyExtension {
         services.AddScoped<IChatService, ChatService>();
         services.AddScoped<IMessageService, MessageService>();
         services.AddScoped<IPermissionCheckService, PermissionCheckService>();
+        services.AddScoped<IFriendService, FriendService>();
         services.AddHostedService<BackendRecieverService>();
 
         return services;

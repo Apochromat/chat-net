@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChatNet.Backend.API.Controllers; 
 
+/// <summary>
+/// Message controller
+/// </summary>
 [ApiController]
 [Route("api/backend/message")]
 public class MessageController: ControllerBase {
@@ -13,6 +16,12 @@ public class MessageController: ControllerBase {
     private readonly IMessageService _messageService;
     private readonly IPermissionCheckService _permissionCheckService;
     
+    /// <summary>
+    /// controller constructor
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="messageService"></param>
+    /// <param name="permissionCheckService"></param>
     public MessageController(ILogger<MessageController> logger, 
         IMessageService messageService,
         IPermissionCheckService permissionCheckService) {
@@ -29,7 +38,7 @@ public class MessageController: ControllerBase {
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpPost]
-    [Route("/chat/{chatId}")]
+    [Route("chat/{chatId}")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult> SendMessage([FromBody] MessageActionsDto model, Guid chatId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {

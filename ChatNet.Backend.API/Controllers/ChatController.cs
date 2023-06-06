@@ -1,4 +1,5 @@
 using ChatNet.Common.DataTransferObjects;
+using ChatNet.Common.Enumerations;
 using ChatNet.Common.Exceptions;
 using ChatNet.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -6,12 +7,21 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ChatNet.Backend.API.Controllers;
 
+/// <summary>
+/// Chat controller
+/// </summary>
 [ApiController]
 [Route("api/backend")]
 public class ChatController : ControllerBase {
     private readonly ILogger<ChatController> _logger;
     private readonly IChatService _chatService;
     private readonly IPermissionCheckService _permissionCheckService;
+    /// <summary>
+    /// Controller constructor
+    /// </summary>
+    /// <param name="logger"></param>
+    /// <param name="chatService"></param>
+    /// <param name="permissionCheckService"></param>
     public ChatController(ILogger<ChatController> logger,
         IChatService chatService,
         IPermissionCheckService permissionCheckService) {
@@ -28,7 +38,7 @@ public class ChatController : ControllerBase {
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpGet]
-    [Route("/chats/preview")]
+    [Route("chats/preview")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult<ChatListDto>> GetUserChats([FromQuery] int page = 1,
         [FromQuery] int pageSize = 15) {
@@ -47,9 +57,9 @@ public class ChatController : ControllerBase {
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpGet]
-    [Route("/chat/{chatId}/messages")]
+    [Route("chat/{chatId}/messages")]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    public async Task<ActionResult<ChatFullDto>> GetChatWithMessages(Guid chatId, [FromQuery] int page = 1,
+    public async Task<ActionResult<Pagination<MessageDto>>> GetChatWithMessages(Guid chatId, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 15) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
@@ -60,13 +70,30 @@ public class ChatController : ControllerBase {
     }
     
     /// <summary>
+    /// get chat details with files and users
+    /// </summary>
+    /// <param name="chatId"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpGet]
+    [Route("chat/{chatId}/details")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult<ChatFullDto>> GetChatDetails(Guid chatId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _permissionCheckService.CheckUserHasAccessToChat(userId, chatId);
+        return Ok(await _chatService.GetChatDetails(chatId));
+    }
+    
+    /// <summary>
     /// Create private chat only for 2 person
     /// </summary>
     /// <param name="model"></param>
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpPost]
-    [Route("/chat/create/private")]
+    [Route("chat/private/create")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult> CreatePrivateChat([FromBody] ChatPrivateCreateDto model) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
@@ -87,7 +114,7 @@ public class ChatController : ControllerBase {
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpPost]
-    [Route("/chat/create/group")]
+    [Route("chat/group/create")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult> CreateGroupChat([FromBody] ChatCreateDto model) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
@@ -105,7 +132,7 @@ public class ChatController : ControllerBase {
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpPut]
-    [Route("/chat/{chatId}")]
+    [Route("chat/{chatId}")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult> EditChat([FromBody] ChatEditDto model, Guid chatId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
@@ -117,14 +144,33 @@ public class ChatController : ControllerBase {
     }
     
     /// <summary>
-    /// Delete chat 
+    /// change user's notification preference type 
+    /// </summary>
+    /// <param name="preferenceType"></param>
+    /// <param name="chatId"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpPut]
+    [Route("chat/{chatId}/notification-preference")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult> EditPreferenceType([FromQuery] NotificationPreferenceType preferenceType, Guid chatId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _permissionCheckService.CheckUserHasAccessToChat(userId, chatId);
+        await _chatService.EditNotificationsPreference(chatId, userId, preferenceType);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Delete chat (only for admin)
     /// </summary>
     /// <param name="model"></param>
     /// <param name="chatId"></param>
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpDelete]
-    [Route("/chat/{chatId}/group")]
+    [Route("chat/group/{chatId}")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult> DeleteChat([FromBody] ChatEditDto model, Guid chatId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
@@ -142,7 +188,7 @@ public class ChatController : ControllerBase {
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpDelete]
-    [Route("/chat/{chatId}/leave/private")]
+    [Route("chat/private/{chatId}/leave")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult> LeavePrivateChat(Guid chatId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
@@ -160,7 +206,7 @@ public class ChatController : ControllerBase {
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpDelete]
-    [Route("/chat/{chatId}/leave/group")]
+    [Route("chat/group/{chatId}/leave")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult> LeaveGroupChat(Guid chatId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
@@ -172,14 +218,14 @@ public class ChatController : ControllerBase {
     }
     
     /// <summary>
-    /// Add user in chat (only for admin)
+    /// Add user in group chat (only for admin)
     /// </summary>
     /// <param name="chatId"></param>
     /// <param name="userId"></param>
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpPost]
-    [Route("/chat/{chatId}/user/{userId}")]
+    [Route("chat/group/{chatId}/user/{userId}")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult> AddUserToChat(Guid chatId, Guid userId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid adminId) == false) {
@@ -191,6 +237,25 @@ public class ChatController : ControllerBase {
     }
     
     /// <summary>
+    /// Delete user from chat (only for admin)
+    /// </summary>
+    /// <param name="chatId"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpDelete]
+    [Route("chat/group/{chatId}/user/{userId}")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult> DeleteUserFromChat(Guid chatId, Guid userId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid adminId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _permissionCheckService.CheckUserIsChatAdmin(adminId, chatId);
+        await _chatService.DeleteUserFromGroupChat(chatId , userId);
+        return Ok();
+    }
+    
+    /// <summary>
     /// Make user admin
     /// </summary>
     /// <param name="chatId"></param>
@@ -198,7 +263,7 @@ public class ChatController : ControllerBase {
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpPost]
-    [Route("/chat/{chatId}/user/{userId}/admin")]
+    [Route("chat/{chatId}/user/{userId}/admin")]
     [Authorize(AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult> MakeUserAdmin(Guid chatId, Guid userId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid adminId) == false) {
@@ -210,22 +275,5 @@ public class ChatController : ControllerBase {
         return Ok();
     }
     
-    /// <summary>
-    /// Delete user from chat (only for admin)
-    /// </summary>
-    /// <param name="chatId"></param>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    /// <exception cref="UnauthorizedException"></exception>
-    [HttpDelete]
-    [Route("/chat/{chatId}/group/user/{userId}")]
-    [Authorize(AuthenticationSchemes = "Bearer")]
-    public async Task<ActionResult> DeleteUserFromChat(Guid chatId, Guid userId) {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid adminId) == false) {
-            throw new UnauthorizedException("User is not authorized");
-        }
-        await _permissionCheckService.CheckUserIsChatAdmin(adminId, chatId);
-        await _chatService.DeleteUserFromGroupChat(chatId , userId);
-        return Ok();
-    }
+    
 }

@@ -30,6 +30,7 @@ public class MessageService: IMessageService {
              Files = message.FileIds,
          });
         await _dbContext.SaveChangesAsync();
+            //TODO _notificationService.SendMessage(userList)
     }
 
     public async Task EditMessage(MessageActionsDto message, Guid messageId, Guid senderId) {
