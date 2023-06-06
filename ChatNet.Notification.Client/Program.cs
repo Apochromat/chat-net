@@ -67,7 +67,7 @@ void Print(string message) {
     var type = obj.GetType();
     var properties = type.GetProperties();
     
-    string separator = new string('-', properties.Select(x=>x.ToString()).MaxBy(x=>x.Length).Length + 2);
+    string separator = new string('-', properties.Select(x=>x.ToString()).MaxBy(x=>x?.Length)?.Length ?? 0 + 2);
     Console.WriteLine("New Message:");
     Console.WriteLine(separator);
 

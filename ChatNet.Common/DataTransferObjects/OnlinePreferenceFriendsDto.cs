@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using ChatNet.Common.Enumerations;
 
 namespace ChatNet.Common.DataTransferObjects; 
 

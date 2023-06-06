@@ -33,7 +33,9 @@ public class FileStorageService : IFileStorageService {
         using var memoryStream = new MemoryStream();
         await fileUploadDto.Content.CopyToAsync(memoryStream);
 
-        if (memoryStream.Length < 1048576 * _configuration.GetSection("FileStorage").GetValue<int>("MaxFileSizeInMB")) {
+        var maxFileSize = _configuration.GetSection("FileStorage").GetValue<int>("MaxFileSizeInMB");
+        
+        if (memoryStream.Length < 1048576 * maxFileSize) {
             var id = Guid.NewGuid();
 
             var file = new StoredFile() {
@@ -53,7 +55,7 @@ public class FileStorageService : IFileStorageService {
             return id;
         }
         else {
-            throw new ArgumentException("File is too big");
+            throw new ArgumentException($"File is too big. It must be less than {maxFileSize} MB.");
         }
     }
 
@@ -70,7 +72,7 @@ public class FileStorageService : IFileStorageService {
 
         var files = await _dbContext.Files
             .Where(f => f.OwnerId == ownerId
-                        && f.DeletedAt == null
+                        && !f.DeletedAt.HasValue
                         && (fileTypes == null || fileTypes.Count == 0 || fileTypes.Contains(f.Type)))
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -108,7 +110,7 @@ public class FileStorageService : IFileStorageService {
 
         var files = await _dbContext.Files
             .Where(f => f.Viewers.Contains(userId)
-                        && f.DeletedAt == null
+                        && !f.DeletedAt.HasValue
                         && (fileTypes == null || fileTypes.Count == 0 || fileTypes.Contains(f.Type)))
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -134,18 +136,14 @@ public class FileStorageService : IFileStorageService {
     }
 
     /// <inheritdoc/>
-    public async Task<FileInfoDto> GetFileInfoAsync(Guid fileId, Guid ownerId) {
-        var file = await _dbContext.Files.FindAsync(fileId);
+    public async Task<FileInfoDto> GetFileInfoAsync(Guid fileId, Guid userId) {
+        var file = await _dbContext.Files
+            .Where(f => f.Id == fileId
+                        && !f.DeletedAt.HasValue
+                        && (f.OwnerId == userId || f.Viewers.Contains(userId) || f.IsPublic))
+            .FirstOrDefaultAsync();
         if (file == null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.DeletedAt != null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.OwnerId != ownerId && !file.Viewers.Contains(ownerId) && !file.IsPublic) {
-            throw new ForbiddenException("You don't have access to this file");
+            throw new NotFoundException("File not found or you don't have access to it");
         }
 
         return new FileInfoDto() {
@@ -159,18 +157,14 @@ public class FileStorageService : IFileStorageService {
     }
 
     /// <inheritdoc/>
-    public async Task<FileDownloadDto> DownloadFileAsync(Guid fileId, Guid ownerId) {
-        var file = await _dbContext.Files.FindAsync(fileId);
+    public async Task<FileDownloadDto> DownloadFileAsync(Guid fileId, Guid userId) {
+        var file = await _dbContext.Files
+            .Where(f => f.Id == fileId
+                        && !f.DeletedAt.HasValue
+                        && (f.OwnerId == userId || f.Viewers.Contains(userId) || f.IsPublic))
+            .FirstOrDefaultAsync();
         if (file == null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.DeletedAt != null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.OwnerId != ownerId && !file.Viewers.Contains(ownerId) && !file.IsPublic) {
-            throw new ForbiddenException("You don't have access to this file");
+            throw new NotFoundException("File not found or you don't have access to it");
         }
 
         return new FileDownloadDto() {
@@ -183,17 +177,13 @@ public class FileStorageService : IFileStorageService {
 
     /// <inheritdoc/>
     public async Task EditFileAsync(Guid fileId, Guid ownerId, FileEditDto fileEditDto) {
-        var file = await _dbContext.Files.FindAsync(fileId);
+        var file = await _dbContext.Files
+            .Where(f => f.Id == fileId
+                        && !f.DeletedAt.HasValue
+                        && f.OwnerId == ownerId)
+            .FirstOrDefaultAsync();
         if (file == null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.DeletedAt != null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.OwnerId != ownerId) {
-            throw new ForbiddenException("File can be edited only by its owner");
+            throw new NotFoundException("File not found or you don't have access to it");
         }
 
         file.UpdatedAt = DateTime.UtcNow;
@@ -205,13 +195,13 @@ public class FileStorageService : IFileStorageService {
 
     /// <inheritdoc/>
     public async Task DeleteFileAsync(Guid fileId, Guid ownerId) {
-        var file = await _dbContext.Files.FindAsync(fileId);
+        var file = await _dbContext.Files
+            .Where(f => f.Id == fileId
+                        && !f.DeletedAt.HasValue
+                        && f.OwnerId == ownerId)
+            .FirstOrDefaultAsync();
         if (file == null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.OwnerId != ownerId) {
-            throw new ForbiddenException("File can be deleted only by its owner");
+            throw new NotFoundException("File not found or you don't have access to it");
         }
 
         file.DeletedAt = DateTime.UtcNow;
@@ -239,188 +229,81 @@ public class FileStorageService : IFileStorageService {
     }
 
     /// <inheritdoc/>
-    public async Task AddViewerToFileAsync(Guid fileId, Guid userId, Guid ownerId,
-        bool raiseExceptionIfAlreadyExists = false) {
-        var file = await _dbContext.Files.FindAsync(fileId);
-        if (file == null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.DeletedAt != null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.OwnerId != ownerId) {
-            throw new ForbiddenException("File can be edited only by its owner");
-        }
-
-        if (file.Viewers.Contains(userId)) {
-            if (raiseExceptionIfAlreadyExists) {
-                throw new ConflictException("User is already a viewer of this file");
-            }
-
-            return;
-        }
-
-        file.UpdatedAt = DateTime.UtcNow;
-        file.Viewers.Add(userId);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    /// <inheritdoc/>
-    public async Task RemoveViewerFromFileAsync(Guid fileId, Guid userId, Guid ownerId,
-        bool raiseExceptionIfNotExists = false) {
-        var file = await _dbContext.Files.FindAsync(fileId);
-        if (file == null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.DeletedAt != null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.OwnerId != ownerId) {
-            throw new ForbiddenException("File can be edited only by its owner");
-        }
-
-        if (!file.Viewers.Contains(userId)) {
-            if (raiseExceptionIfNotExists) {
-                throw new ConflictException("User is already a viewer of this file");
-            }
-
-            return;
-        }
-        
-        file.UpdatedAt = DateTime.UtcNow;
-        file.Viewers.Remove(userId);
-        await _dbContext.SaveChangesAsync();
-    }
-
-    /// <inheritdoc/>
-    public async Task AddViewerToFilesAsync(List<Guid> filesId, Guid userId, Guid ownerId,
-        bool raiseExceptionIfAlreadyExists = false) {
-        var files = await _dbContext.Files.Where(f => filesId.Contains(f.Id)).ToListAsync();
-        if (files.Count != filesId.Count) {
-            throw new NotFoundException("Some files were not found");
-        }
-
-        if (files.Any(x => x.DeletedAt != null)) {
-            throw new NotFoundException("Some files were not found");
-        }
-
-        if (files.Any(x => x.OwnerId != ownerId)) {
-            throw new ForbiddenException("Some files can be edited only by its owner");
+    public async Task AddViewerAsync(FilesViewersDto filesViewersDto, Guid? ownerId = null,
+        bool raiseExceptionIfAlreadyExists = false, bool checkOwner = true) {
+        var files = await _dbContext.Files
+            .Where(x => filesViewersDto.Files.Contains(x.Id)
+                        && x.DeletedAt == null
+                        && (checkOwner == false || x.OwnerId == ownerId))
+            .ToListAsync();
+        if (files.Count < filesViewersDto.Files.Count) {
+            throw new NotFoundException("Some files not found or you don't have access to them");
         }
 
         foreach (var file in files) {
-            if (file.Viewers.Contains(userId)) {
-                if (raiseExceptionIfAlreadyExists) {
-                    throw new ConflictException("User is already a viewer of this file");
+            foreach (var viewerId in filesViewersDto.Viewers) {
+                if (file.Viewers.Contains(viewerId)) {
+                    if (raiseExceptionIfAlreadyExists) {
+                        throw new ConflictException($"User {viewerId} is already a viewer of file {file.Id}");
+                    }
+
+                    return;
                 }
 
-                continue;
+                file.UpdatedAt = DateTime.UtcNow;
+                file.Viewers.Add(viewerId);
             }
-
-            file.UpdatedAt = DateTime.UtcNow;
-            file.Viewers.Add(userId);
         }
-        
+
         await _dbContext.SaveChangesAsync();
     }
 
     /// <inheritdoc/>
-    public async Task RemoveViewerFromFilesAsync(List<Guid> filesId, Guid userId, Guid ownerId,
-        bool raiseExceptionIfNotExists = false) {
-        var files = await _dbContext.Files.Where(f => filesId.Contains(f.Id)).ToListAsync();
-        if (files.Count != filesId.Count) {
-            throw new NotFoundException("Some files were not found");
-        }
-
-        if (files.Any(x => x.DeletedAt != null)) {
-            throw new NotFoundException("Some files were not found");
-        }
-
-        if (files.Any(x => x.OwnerId != ownerId)) {
-            throw new ForbiddenException("Some files can be edited only by its owner");
+    public async Task RemoveViewerAsync(FilesViewersDto filesViewersDto, Guid? ownerId = null,
+        bool raiseExceptionIfNotExists = false, bool checkOwner = true) {
+        var files = await _dbContext.Files
+            .Where(x => filesViewersDto.Files.Contains(x.Id)
+                        && x.DeletedAt == null
+                        && (checkOwner == false || x.OwnerId == ownerId))
+            .ToListAsync();
+        if (files.Count < filesViewersDto.Files.Count) {
+            throw new NotFoundException("Some files not found or you don't have access to them");
         }
 
         foreach (var file in files) {
-            if (!file.Viewers.Contains(userId)) {
-                if (raiseExceptionIfNotExists) {
-                    throw new ConflictException("User is already a viewer of this file");
+            foreach (var viewerId in filesViewersDto.Viewers) {
+                if (!file.Viewers.Contains(viewerId)) {
+                    if (raiseExceptionIfNotExists) {
+                        throw new ConflictException($"User {viewerId} is already a viewer of file {file.Id}");
+                    }
+
+                    return;
                 }
 
-                continue;
+                file.UpdatedAt = DateTime.UtcNow;
+                file.Viewers.Add(viewerId);
             }
+        }
 
+        await _dbContext.SaveChangesAsync();
+    }
+
+    /// <inheritdoc/>
+    public async Task SetViewerAsync(FilesViewersDto filesViewersDto, Guid? ownerId = null, bool checkOwner = true) {
+        var files = await _dbContext.Files
+            .Where(x => filesViewersDto.Files.Contains(x.Id)
+                        && x.DeletedAt == null
+                        && (checkOwner == false || x.OwnerId == ownerId))
+            .ToListAsync();
+        if (files.Count < filesViewersDto.Files.Count) {
+            throw new NotFoundException("Some files not found or you don't have access to them");
+        }
+
+        foreach (var file in files) {
             file.UpdatedAt = DateTime.UtcNow;
-            file.Viewers.Remove(userId);
-        }
-        
-        await _dbContext.SaveChangesAsync();
-    }
-
-    /// <inheritdoc/>
-    public async Task AddViewersToFileAsync(Guid fileId, List<Guid> usersId, Guid ownerId,
-        bool raiseExceptionIfAlreadyExists = false) {
-        var file = await _dbContext.Files.FindAsync(fileId);
-        if (file == null) {
-            throw new NotFoundException("File not found");
+            file.Viewers = filesViewersDto.Viewers;
         }
 
-        if (file.DeletedAt != null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.OwnerId != ownerId) {
-            throw new ForbiddenException("File can be edited only by its owner");
-        }
-
-        foreach (var userId in usersId) {
-            if (file.Viewers.Contains(userId)) {
-                if (raiseExceptionIfAlreadyExists) {
-                    throw new ConflictException("User is already a viewer of this file");
-                }
-
-                continue;
-            }
-
-            file.Viewers.Add(userId);
-        }
-        
-        file.UpdatedAt = DateTime.UtcNow;
-        await _dbContext.SaveChangesAsync();
-    }
-
-    /// <inheritdoc/>
-    public async Task RemoveViewersFromFileAsync(Guid fileId, List<Guid> usersId, Guid ownerId,
-        bool raiseExceptionIfNotExists = false) {
-        var file = await _dbContext.Files.FindAsync(fileId);
-        if (file == null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.DeletedAt != null) {
-            throw new NotFoundException("File not found");
-        }
-
-        if (file.OwnerId != ownerId) {
-            throw new ForbiddenException("File can be edited only by its owner");
-        }
-
-        foreach (var userId in usersId) {
-            if (!file.Viewers.Contains(userId)) {
-                if (raiseExceptionIfNotExists) {
-                    throw new ConflictException("User is already a viewer of this file");
-                }
-
-                continue;
-            }
-
-            file.Viewers.Remove(userId);
-        }
-        
-        file.UpdatedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
     }
 

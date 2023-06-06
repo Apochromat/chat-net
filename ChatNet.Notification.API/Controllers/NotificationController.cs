@@ -31,7 +31,7 @@ public class NotificationController : Controller {
     [HttpGet]
     [Route("online-preferences")]
     [Authorize (AuthenticationSchemes = "Bearer")]
-    public async Task<ActionResult<OnlinePreferenceFriendsDto>> GetMyOnlinePreferences() {
+    public async Task<ActionResult<OnlinePreferenceFullDto>> GetMyOnlinePreferences() {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }

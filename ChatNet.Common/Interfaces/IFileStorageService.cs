@@ -84,62 +84,33 @@ public interface IFileStorageService {
     Task<bool> IsFileOwnerOrViewerAsync(Guid fileId, Guid userId);
 
     /// <summary>
-    /// Adds user to the list of viewers of the file
+    /// Adds users to the lists of viewers of the files
     /// </summary>
-    /// <param name="fileId"></param>
-    /// <param name="userId"></param>
+    /// <param name="filesViewersDto"></param>
     /// <param name="ownerId"></param>
     /// <param name="raiseExceptionIfAlreadyExists"></param>
+    /// <param name="checkOwner"></param>
     /// <returns></returns>
-    Task AddViewerToFileAsync(Guid fileId, Guid userId, Guid ownerId, bool raiseExceptionIfAlreadyExists = false);
+    Task AddViewerAsync(FilesViewersDto filesViewersDto, Guid? ownerId = null,
+        bool raiseExceptionIfAlreadyExists = false, bool checkOwner = true);
 
     /// <summary>
-    /// Removes user from the list of viewers of the file
+    /// Removes users from the lists of viewers of the files
     /// </summary>
-    /// <param name="fileId"></param>
-    /// <param name="userId"></param>
+    /// <param name="filesViewersDto"></param>
     /// <param name="ownerId"></param>
     /// <param name="raiseExceptionIfNotExists"></param>
+    /// <param name="checkOwner"></param>
     /// <returns></returns>
-    Task RemoveViewerFromFileAsync(Guid fileId, Guid userId, Guid ownerId, bool raiseExceptionIfNotExists = false);
+    Task RemoveViewerAsync(FilesViewersDto filesViewersDto, Guid? ownerId = null,
+        bool raiseExceptionIfNotExists = false, bool checkOwner = true);
 
     /// <summary>
-    /// Adds user to the list of viewers of the files
+    /// Sets viewers of the files
     /// </summary>
-    /// <param name="filesId"></param>
-    /// <param name="userId"></param>
+    /// <param name="filesViewersDto"></param>
     /// <param name="ownerId"></param>
-    /// <param name="raiseExceptionIfAlreadyExists"></param>
+    /// <param name="checkOwner"></param>
     /// <returns></returns>
-    Task AddViewerToFilesAsync(List<Guid> filesId, Guid userId, Guid ownerId, bool raiseExceptionIfAlreadyExists = false);
-
-    /// <summary>
-    /// Removes user from the list of viewers of the files
-    /// </summary>
-    /// <param name="filesId"></param>
-    /// <param name="userId"></param>
-    /// <param name="ownerId"></param>
-    /// <param name="raiseExceptionIfNotExists"></param>
-    /// <returns></returns>
-    Task RemoveViewerFromFilesAsync(List<Guid> filesId, Guid userId, Guid ownerId, bool raiseExceptionIfNotExists = false);
-    
-    /// <summary>
-    /// Adds user to the list of viewers of the file
-    /// </summary>
-    /// <param name="fileId"></param>
-    /// <param name="usersId"></param>
-    /// <param name="ownerId"></param>
-    /// <param name="raiseExceptionIfAlreadyExists"></param>
-    /// <returns></returns>
-    Task AddViewersToFileAsync(Guid fileId, List<Guid> usersId, Guid ownerId, bool raiseExceptionIfAlreadyExists = false);
-
-    /// <summary>
-    /// Removes user from the list of viewers of the file
-    /// </summary>
-    /// <param name="fileId"></param>
-    /// <param name="usersId"></param>
-    /// <param name="ownerId"></param>
-    /// <param name="raiseExceptionIfNotExists"></param>
-    /// <returns></returns>
-    Task RemoveViewersFromFileAsync(Guid fileId, List<Guid> usersId, Guid ownerId, bool raiseExceptionIfNotExists = false);
+    Task SetViewerAsync(FilesViewersDto filesViewersDto, Guid? ownerId = null, bool checkOwner = true);
 }

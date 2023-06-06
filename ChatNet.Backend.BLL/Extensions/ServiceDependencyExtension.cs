@@ -1,6 +1,5 @@
 using ChatNet.Backend.BLL.Services;
 using ChatNet.Common.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ChatNet.Backend.BLL.Extensions; 
@@ -16,6 +15,7 @@ public static class ServiceDependencyExtension {
     /// <returns></returns>
     public static IServiceCollection AddBackendServiceDependencies(this IServiceCollection services) {
         services.AddScoped<INotificationQueueService, NotificationQueueService>();
+        services.AddScoped<IFilesQueueService, FilesQueueService>();
         return services;
     }
 }

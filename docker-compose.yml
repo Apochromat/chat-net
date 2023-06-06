@@ -43,6 +43,7 @@ services:
     ports:
       - "5021:80"
     environment:
+      - RABBITMQ__HOSTNAME=rabbitmq
       - CONNECTIONSTRINGS__AUTHDATABASE=User ID=postgres;Password=postgres;Host=postgres;Port=5432;Database=chat-auth-db
     networks:
       - internal-network
@@ -92,6 +93,7 @@ services:
     ports:
       - "5056:80"
     environment:
+      - RABBITMQ__HOSTNAME=rabbitmq
       - CONNECTIONSTRINGS__FILESTORAGEDATABASE=User ID=postgres;Password=postgres;Host=postgres;Port=5432;Database=chat-files-db
     networks:
       - internal-network

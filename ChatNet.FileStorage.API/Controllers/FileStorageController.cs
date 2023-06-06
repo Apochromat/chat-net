@@ -200,114 +200,54 @@ public class FileStorageController : ControllerBase {
     }
 
     /// <summary>
-    /// Add viewer to file
+    /// Add viewers to files
     /// </summary>
-    /// <param name="fileId"></param>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    [HttpPost]
-    [Route("{fileId}/add-viewer")]
-    public async Task<ActionResult> AddViewerToFile([FromRoute] Guid fileId, [FromQuery] [Required] Guid userId) {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid ownerId) == false) {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
-        await _fileStorageService.AddViewerToFileAsync(fileId, userId, ownerId);
-        _logger.LogInformation("Viewer of file was added");
-        return Ok();
-    }
-
-    /// <summary>
-    /// Remove viewer from file
-    /// </summary>
-    /// <param name="fileId"></param>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    [HttpDelete]
-    [Route("{fileId}/remove-viewer")]
-    public async Task<ActionResult> RemoveViewerFromFile([FromRoute] Guid fileId, [FromQuery] [Required] Guid userId) {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid ownerId) == false) {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
-        await _fileStorageService.RemoveViewerFromFileAsync(fileId, userId, ownerId);
-        _logger.LogInformation("Viewer of file was removed");
-        return Ok();
-    }
-
-    /// <summary>
-    /// Add viewer to files
-    /// </summary>
-    /// <param name="filesId"></param>
-    /// <param name="userId"></param>
+    /// <param name="filesViewersDto"></param>
     /// <returns></returns>
     [HttpPost]
     [Route("add-viewer")]
-    public async Task<ActionResult> AddViewerToFiles([FromQuery] [Required] List<Guid> filesId,
-        [FromQuery] [Required] Guid userId) {
+    public async Task<ActionResult> AddViewer([FromBody] FilesViewersDto filesViewersDto) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid ownerId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-
-        await _fileStorageService.AddViewerToFilesAsync(filesId, userId, ownerId);
-        _logger.LogInformation("Viewer were added to files");
+        
+        await _fileStorageService.AddViewerAsync(filesViewersDto, ownerId);
+        _logger.LogInformation("Viewer(s) of file(s) was(were) added");
         return Ok();
     }
 
     /// <summary>
-    /// Remove viewer from files
+    /// Remove viewers from files
     /// </summary>
-    /// <param name="filesId"></param>
-    /// <param name="userId"></param>
+    /// <param name="filesViewersDto"></param>
     /// <returns></returns>
     [HttpDelete]
     [Route("remove-viewer")]
-    public async Task<ActionResult> RemoveViewerFromFiles([FromQuery] [Required] List<Guid> filesId,
-        [FromQuery] [Required] Guid userId) {
+    public async Task<ActionResult> RemoveViewer([FromBody] FilesViewersDto filesViewersDto) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid ownerId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _fileStorageService.RemoveViewerFromFilesAsync(filesId, userId, ownerId);
-        _logger.LogInformation("Viewer was removed from files");
+        await _fileStorageService.RemoveViewerAsync(filesViewersDto, ownerId);
+        _logger.LogInformation("Viewer(s) of file(s) was(were) removed");
         return Ok();
     }
 
     /// <summary>
-    /// Add viewers to file
+    /// Set viewers to files
     /// </summary>
-    /// <param name="fileId"></param>
-    /// <param name="viewers"></param>
+    /// <param name="filesViewersDto"></param>
     /// <returns></returns>
     [HttpPost]
-    [Route("{fileId}/add-viewers")]
-    public async Task<ActionResult> AddViewersToFiles([FromRoute] Guid fileId,
-        [FromQuery] [Required] List<Guid> viewers) {
+    [Route("set-viewer")]
+    public async Task<ActionResult> SetViewer([FromBody] FilesViewersDto filesViewersDto) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid ownerId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _fileStorageService.AddViewersToFileAsync(fileId, viewers, ownerId);
-        _logger.LogInformation("Viewers of file were added");
+        await _fileStorageService.SetViewerAsync(filesViewersDto, ownerId);
+        _logger.LogInformation("Viewer(s) of file(s) was(were) set");
         return Ok();
     }
 
-    /// <summary>
-    /// Remove viewers from file
-    /// </summary>
-    /// <param name="fileId"></param>
-    /// <param name="viewers"></param>
-    /// <returns></returns>
-    [HttpDelete]
-    [Route("{fileId}/remove-viewers")]
-    public async Task<ActionResult> RemoveViewersFromFiles([FromRoute] Guid fileId,
-        [FromQuery] [Required] List<Guid> viewers) {
-        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid ownerId) == false) {
-            throw new UnauthorizedException("User is not authorized");
-        }
-
-        await _fileStorageService.RemoveViewersFromFileAsync(fileId, viewers, ownerId);
-        _logger.LogInformation("Viewers of file were removed");
-        return Ok();
-    }
 }

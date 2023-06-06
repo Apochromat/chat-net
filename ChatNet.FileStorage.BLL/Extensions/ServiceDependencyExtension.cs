@@ -20,6 +20,7 @@ public static class ServiceDependencyExtension {
     public static IServiceCollection AddFileStorageServiceDependencies(this IServiceCollection services, IConfiguration configuration) {
         services.AddDbContext<FileStorageDbContext>(options => 
             options.UseNpgsql(configuration.GetConnectionString("FileStorageDatabase")));
+        services.AddHostedService<RabbitMqFilesViewersListenerService>();
         services.AddScoped<IFileStorageService, FileStorageService>();
         return services;
     }
