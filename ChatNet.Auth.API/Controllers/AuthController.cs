@@ -10,7 +10,7 @@ namespace ChatNet.Auth.API.Controllers;
 /// Controller for register, authentication, changing the password
 /// </summary>
 [ApiController]
-[Route("api")]
+[Route("api/auth")]
 public class AuthController : ControllerBase {
     private readonly IAuthService _authService;
 

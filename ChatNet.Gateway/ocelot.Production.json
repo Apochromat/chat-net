@@ -1,0 +1,160 @@
+﻿{
+  "Routes": [
+    {
+      "DownstreamPathTemplate": "/api/files",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "files",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/files",
+      "SwaggerKey": "files"
+    },
+    {
+      "DownstreamPathTemplate": "/api/files/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "files",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/files/{everything}",
+      "SwaggerKey": "files",
+      "Priority": 0
+    },
+    {
+      "DownstreamPathTemplate": "/api/auth/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "auth",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/auth/{everything}",
+      "SwaggerKey": "auth",
+      "Priority": 0
+    },
+    {
+      "DownstreamPathTemplate": "/api/backend/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "backend",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/backend/{everything}",
+      "SwaggerKey": "backend",
+      "Priority": 0
+    },
+    {
+      "DownstreamPathTemplate": "/api/notification/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notification",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notification/{everything}",
+      "SwaggerKey": "notification",
+      "Priority": 0
+    },
+    {
+      "DownstreamPathTemplate": "/api/notification/hub",
+      "DownstreamScheme": "ws",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notification",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notification/hub",
+      "SwaggerKey": "notification",
+      "Priority": 1
+    },
+    {
+      "DownstreamPathTemplate": "/api/notification/hub/{path}",
+      "DownstreamScheme": "ws",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "notification",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/notification/hub/{path}",
+      "SwaggerKey": "notification",
+      "Priority": 1
+    },
+    {
+      "DownstreamPathTemplate": "/swagger",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "gateway",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/swagger",
+      "Priority": 2
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "gateway",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/swagger/{everything}",
+      "Priority": 3
+    }
+  ],
+  "SwaggerEndPoints": [
+    {
+      "Key": "auth",
+      "Config": [
+        {
+          "Name": "Auth API",
+          "Version": "v1",
+          "Url": "http://auth:80/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "files",
+      "Config": [
+        {
+          "Name": "Files API",
+          "Version": "v1",
+          "Url": "http://files:80/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "backend",
+      "Config": [
+        {
+          "Name": "Backend API",
+          "Version": "v1",
+          "Url": "http://backend:80/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "notification",
+      "Config": [
+        {
+          "Name": "Notification API",
+          "Version": "v1",
+          "Url": "http://notification:80/swagger/v1/swagger.json"
+        }
+      ]
+    }
+  ]
+}

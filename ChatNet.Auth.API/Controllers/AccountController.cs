@@ -10,7 +10,7 @@ namespace ChatNet.Auth.API.Controllers;
 /// Account controller
 /// </summary>
 [ApiController]
-[Route("api")]
+[Route("api/account")]
 public class AccountController : ControllerBase{
     private readonly IAccountService _accountService;
 
@@ -28,7 +28,6 @@ public class AccountController : ControllerBase{
     /// <returns></returns>
     [HttpGet]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    [Route("account")]
     public async Task<ActionResult<ProfileFullDto>> GetCurrentProfile() {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
@@ -42,7 +41,6 @@ public class AccountController : ControllerBase{
     /// <returns></returns>
     [HttpPut]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    [Route("account")]
     public async Task<ActionResult> UpdateProfile([FromBody] ProfileEditDto profileEditDto) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
@@ -57,7 +55,7 @@ public class AccountController : ControllerBase{
     /// </summary>
     /// <returns></returns>
     [HttpGet]
-    [Route("account/{userId}")]
+    [Route("{userId}")]
     public async Task<ActionResult<ProfileShortDto>> GetCurrentProfile(Guid userId) {
         return Ok(await _accountService.GetShortProfileAsync(userId));
     }

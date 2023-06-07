@@ -19,7 +19,7 @@ builder.Services.AddControllers().AddJsonOptions(opts => {
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(option => {
-    option.SwaggerDoc("v1", new OpenApiInfo { Title = "ChatNet: auth-component", Version = "v1" });
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "ChatNet: backend-component", Version = "v1" });
     option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme {
         In = ParameterLocation.Header,
         Description = "Please enter a valid token",
@@ -47,6 +47,8 @@ builder.Services.AddAuthorization();
 builder.Services.AddJwtAuthorisation(builder.Configuration);
 
 
+builder.Services.AddBackendServiceDependencies();
+
 // Serilog
 var logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
@@ -59,15 +61,13 @@ var app = builder.Build();
 
 await app.MigrateDbAsync();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment()) {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
+app.UseAuthentication();
 
 app.MapControllers();
 

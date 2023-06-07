@@ -7,20 +7,22 @@ namespace ChatNet.Common.Interfaces;
 /// </summary>
 public interface IAccountService{
     /// <summary>
-    /// Get profile
+    /// Get user profile
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
     Task<ProfileFullDto> GetProfileAsync(Guid userId);
+    
     /// <summary>
-    /// Edit profile
+    /// Edit user profile
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="accountProfileEditDto"></param>
     /// <returns></returns>
     Task EditProfileAsync(Guid userId, ProfileEditDto accountProfileEditDto);
+    
     /// <summary>
-    /// Get profile
+    /// Get short user profile
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>

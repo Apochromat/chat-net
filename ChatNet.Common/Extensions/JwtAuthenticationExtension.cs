@@ -6,14 +6,17 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace ChatNet.Common.Extensions; 
 
-public static class JwtAuthorisationExtension {
+/// <summary>
+/// Extension for jwt authorisation
+/// </summary>
+public static class JwtAuthenticationExtension {
     /// <summary>
     /// Add jwt authorisation
     /// </summary>
     /// <param name="services"></param>
     /// <param name="configuration"></param>
     /// <returns></returns>
-    public static IServiceCollection AddJwtAuthorisation(this IServiceCollection services, IConfiguration configuration) {
+    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration) {
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options => {
                 options.TokenValidationParameters = new TokenValidationParameters {

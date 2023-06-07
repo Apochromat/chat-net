@@ -6,14 +6,20 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ChatNet.Auth.BLL.Services; 
 
+/// <inheritdoc cref="IAccountService"/>
 public class AccountService: IAccountService {
     
     private readonly UserManager<User> _userManager;
 
+    /// <summary>
+    /// Constructor
+    /// </summary>
+    /// <param name="userManager"></param>
     public AccountService(UserManager<User> userManager) {
         _userManager = userManager;
     }
     
+    /// <inheritdoc cref="IAccountService.GetProfileAsync"/>
     public async Task<ProfileFullDto> GetProfileAsync(Guid userId) {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null) {
@@ -21,8 +27,8 @@ public class AccountService: IAccountService {
         }
         var profile = new ProfileFullDto {
             Id = user.Id,
-            Email = user.Email,
-            PhoneNumber = user.PhoneNumber,
+            Email = user.Email!,
+            PhoneNumber = user.PhoneNumber!,
             FullName = user.FullName,
             BirthDate = user.BirthDate,
             JoinedAt = user.JoinedAt,
@@ -33,6 +39,7 @@ public class AccountService: IAccountService {
         return profile;
     }
 
+    /// <inheritdoc cref="IAccountService.EditProfileAsync"/>
     public async Task EditProfileAsync(Guid userId, ProfileEditDto accountProfileEditDto) {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null) {
@@ -48,6 +55,7 @@ public class AccountService: IAccountService {
         } 
     }
 
+    /// <inheritdoc cref="IAccountService.GetShortProfileAsync"/>
     public async Task<ProfileShortDto> GetShortProfileAsync(Guid userId) {
         var user = await _userManager.FindByIdAsync(userId.ToString());
         if (user == null) {

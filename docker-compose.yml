@@ -1,0 +1,113 @@
+version: '3'
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: ChatNet.Gateway/Dockerfile
+    ports:
+      - "5253:80"
+    restart: on-failure
+    networks:
+      - internal-network
+      - external-network
+    depends_on:
+      - auth
+      - backend
+      - notification
+      - files
+  rabbitmq:
+    image: rabbitmq:3.8-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - internal-network
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - internal-network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+  auth:
+    build:
+      context: .
+      dockerfile: ChatNet.Auth.API/Dockerfile
+    restart: on-failure
+    ports:
+      - "5021:80"
+    environment:
+      - RABBITMQ__HOSTNAME=rabbitmq
+      - CONNECTIONSTRINGS__AUTHDATABASE=User ID=postgres;Password=postgres;Host=postgres;Port=5432;Database=chat-auth-db
+    networks:
+      - internal-network
+    depends_on:
+      - rabbitmq
+      - postgres
+    volumes:
+      - /var/log/chat-net/auth:/app/logs
+  backend:
+    build:
+      context: .
+      dockerfile: ChatNet.Backend.API/Dockerfile
+    restart: on-failure
+    ports:
+      - "5147:80"
+    environment:
+      - RABBITMQ__HOSTNAME=rabbitmq
+    networks:
+      - internal-network
+    depends_on:
+      - rabbitmq
+      - postgres
+    volumes:
+      - /var/log/chat-net/backend:/app/logs
+  notification:
+    build:
+      context: .
+      dockerfile: ChatNet.Notification.API/Dockerfile
+    restart: on-failure
+    ports:
+      - "5023:80"
+    environment:
+      - RABBITMQ__HOSTNAME=rabbitmq
+      - CONNECTIONSTRINGS__NOTIFICATIONDATABASE=User ID=postgres;Password=postgres;Host=postgres;Port=5432;Database=chat-notification-db
+    networks:
+      - internal-network
+    depends_on:
+      - rabbitmq
+      - postgres
+    volumes:
+      - /var/log/chat-net/notification:/app/logs
+  files:
+    build:
+      context: .
+      dockerfile: ChatNet.FileStorage.API/Dockerfile
+    restart: on-failure
+    ports:
+      - "5056:80"
+    environment:
+      - RABBITMQ__HOSTNAME=rabbitmq
+      - CONNECTIONSTRINGS__FILESTORAGEDATABASE=User ID=postgres;Password=postgres;Host=postgres;Port=5432;Database=chat-files-db
+    networks:
+      - internal-network
+    depends_on:
+      - rabbitmq
+      - postgres
+    volumes:
+      - /var/log/chat-net/files:/app/logs
+
+volumes:
+  rabbitmq_data:
+  postgres_data:
+
+networks:
+  internal-network:
+  external-network:
+    external: true

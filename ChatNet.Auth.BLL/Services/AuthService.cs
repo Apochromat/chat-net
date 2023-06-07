@@ -107,8 +107,8 @@ public class AuthService : IAuthService {
             throw new NotFoundException("User not found");
         }
 
-        var ipAddress = httpContext?.Connection.RemoteIpAddress?.ToString() ?? "";
-        var userAgent = httpContext?.Request.Headers["User-Agent"].ToString() ?? "";
+        var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "";
+        var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
         
         var device =
             user.Devices.FirstOrDefault(x => x.IpAddress == ipAddress || x.UserAgent == userAgent);

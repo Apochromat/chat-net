@@ -274,6 +274,4 @@ public class ChatController : ControllerBase {
         await _chatService.MakeUserAdmin(chatId , adminId,userId);
         return Ok();
     }
-    
-    
 }
