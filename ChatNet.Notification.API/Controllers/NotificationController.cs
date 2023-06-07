@@ -11,6 +11,7 @@ namespace ChatNet.Notification.API.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/notification")]
+[Authorize (AuthenticationSchemes = "Bearer")]
 public class NotificationController : Controller {
     private readonly IOnlinePreferencesManagerService _onlinePreferencesManagerService;
 
@@ -30,7 +31,6 @@ public class NotificationController : Controller {
     /// <exception cref="NotFoundException"></exception>
     [HttpGet]
     [Route("online-preferences")]
-    [Authorize (AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult<OnlinePreferenceFullDto>> GetMyOnlinePreferences() {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
@@ -52,7 +52,6 @@ public class NotificationController : Controller {
     /// <exception cref="NotFoundException"></exception>
     [HttpPut]
     [Route("online-preferences")]
-    [Authorize (AuthenticationSchemes = "Bearer")]
     public async Task<ActionResult> SetMyOnlinePreferences([FromBody] OnlinePreferenceTypeDto preferenceTypeDto) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
