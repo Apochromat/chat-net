@@ -11,5 +11,5 @@ public interface IMessageSenderService {
     /// </summary>
     /// <param name="messageDto"></param>
     /// <returns></returns>
-    public Task SendNotification(NotificationMessageDto messageDto);
+    public Task SendNotification(MessageAuthToBackendDto messageDto);
 }

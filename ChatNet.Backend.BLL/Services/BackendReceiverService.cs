@@ -54,7 +54,7 @@ public class BackendReceiverService : BackgroundService {
         consumer.Received += async (_, eventArgs) => {
             try {
                 var rawMessage = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
-                var message = JsonSerializer.Deserialize<NotificationMessageDto>(rawMessage);
+                var message = JsonSerializer.Deserialize<MessageAuthToBackendDto>(rawMessage);
                 if (message == null) throw new InvalidOperationException();
 
                 using (var scope = _serviceScopeFactory.CreateScope()) {

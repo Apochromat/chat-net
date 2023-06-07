@@ -8,9 +8,10 @@ namespace ChatNet.Backend.BLL.Services;
 
 public class FriendService:IFriendService {
     private readonly BackendDbContext _dbContext;
-
-    public FriendService(BackendDbContext dbContext) {
+    private readonly INotificationQueueService _notificationQueueService;
+    public FriendService(BackendDbContext dbContext, INotificationQueueService notificationQueueService) {
         _dbContext = dbContext;
+        _notificationQueueService = notificationQueueService;
     }
 
     public async Task AddFriend(Guid userId, Guid friendId) {
@@ -26,7 +27,10 @@ public class FriendService:IFriendService {
             throw new ConflictException("He is already your friend");
         user.Friends.Add(friend);
         await _dbContext.SaveChangesAsync();
-        //TODO : _notificationService.SendFriends(user.Friends.Select(u => u.Id).ToList());
+        await _notificationQueueService.SendOnlinePreferenceAsync(new OnlinePreferenceFriendsDto {
+            UserId = user.Id,
+            Friends = user.Friends.Select(u => u.Id).ToList()
+        });
     }
 
     public async Task<Pagination<Guid>> GetFriends(Guid userId, int page, int pageSize) {
@@ -61,5 +65,9 @@ public class FriendService:IFriendService {
             throw new ConflictException("He is not your friend");
         user.Friends.Remove(friend);
         await _dbContext.SaveChangesAsync();
+        await _notificationQueueService.SendOnlinePreferenceAsync(new OnlinePreferenceFriendsDto {
+            UserId = user.Id,
+            Friends = user.Friends.Select(u => u.Id).ToList()
+        });
     }
 }

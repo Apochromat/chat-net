@@ -22,7 +22,7 @@ public class MessageSernderService : IMessageSenderService {
     /// Sends notification to user
     /// </summary>
     /// <param name="messageDto"></param>
-    public Task SendNotification(NotificationMessageDto messageDto) {
+    public Task SendNotification(MessageAuthToBackendDto messageDto) {
         var factory = new ConnectionFactory() { HostName = _configuration["RabbitMQ:HostName"] };
         try {
             using var connection = factory.CreateConnection();

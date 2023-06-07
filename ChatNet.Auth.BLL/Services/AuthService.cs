@@ -77,7 +77,7 @@ public class AuthService : IAuthService {
 
         if (result.Succeeded) {
             _logger.LogInformation("Successful register");
-            await _messageSenderService.SendNotification(new NotificationMessageDto {
+            await _messageSenderService.SendNotification(new MessageAuthToBackendDto {
                 Title = "request on create user in backend",
                 NewUserId = user.Id
             });

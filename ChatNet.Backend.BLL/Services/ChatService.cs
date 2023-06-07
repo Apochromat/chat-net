@@ -10,9 +10,11 @@ namespace ChatNet.Backend.BLL.Services;
 
 public class ChatService: IChatService {
     private readonly BackendDbContext _dbContext;
+    private readonly IFilesQueueService _filesQueueService;
 
-    public ChatService(BackendDbContext dbContext) {
+    public ChatService(BackendDbContext dbContext, IFilesQueueService filesQueueService) {
         _dbContext = dbContext;
+        _filesQueueService = filesQueueService;
     }
 
     public async Task<ChatListDto> GetChatList(Guid userId, int page, int pageSize) {
@@ -114,6 +116,13 @@ public class ChatService: IChatService {
         if (chat == null) throw new NotFoundException("Chat with this id not found");
         user.Chats.Remove(chat);
         await _dbContext.SaveChangesAsync();
+        var fileIds = chat.FileIds;
+        if (chat.ChatAvatarId is not null) 
+            fileIds.Add(chat.ChatAvatarId.Value);
+        await _filesQueueService.SetViewersAsync(new FilesViewersDto {
+            Files = fileIds,
+            Viewers = chat.Users.Select(u => u.Id).ToList()
+        });
     }
     public async Task LeaveGroupChat(Guid userId, Guid chatId) {
         var user = await _dbContext.Users
@@ -126,7 +135,15 @@ public class ChatService: IChatService {
         if (chat.Administrators.Count <= 1 && chat.Administrators.Contains(user))
             throw new MethodNotAllowedException("User can not leave the chat while he is the only admin");
         user.Chats.Remove(chat);
-        await _dbContext.SaveChangesAsync();    
+        await _dbContext.SaveChangesAsync(); 
+        var fileIds = chat.FileIds;
+        if (chat.ChatAvatarId is not null) 
+            fileIds.Add(chat.ChatAvatarId.Value);
+        await _filesQueueService.SetViewersAsync(new FilesViewersDto {
+            Files = fileIds,
+            Viewers = chat.Users.Select(u => u.Id).ToList()
+        });
+        
     }
 
     public async Task CreatePrivateChat(ChatPrivateCreateDto chatModel , Guid creatorId) {
@@ -163,6 +180,12 @@ public class ChatService: IChatService {
         
         await _dbContext.AddRangeAsync(preferences);
         await _dbContext.SaveChangesAsync();
+        await _filesQueueService.SetViewersAsync(new FilesViewersDto {
+            Files = chatModel.AvatarId == null || !chatModel.AvatarId.HasValue
+                ? new List<Guid>()
+                : new List<Guid> { chatModel.AvatarId.Value },
+            Viewers = chat.Users.Select(u => u.Id).ToList()
+        });
     }
 
     public async Task CreateGroupChat(ChatCreateDto chatModel, Guid creatorId) {
@@ -192,6 +215,12 @@ public class ChatService: IChatService {
             });
         await _dbContext.AddRangeAsync(preferences);
         await _dbContext.SaveChangesAsync();
+        await _filesQueueService.SetViewersAsync(new FilesViewersDto {
+            Files = chatModel.AvatarId == null || !chatModel.AvatarId.HasValue
+                ? new List<Guid>()
+                : new List<Guid> { chatModel.AvatarId.Value },
+            Viewers = users.Select(u => u.Id).ToList()
+        });
     }
 
     public async Task AddUserToGroupChat(Guid chatId , Guid userId) {
@@ -215,6 +244,14 @@ public class ChatService: IChatService {
             PreferenceType = NotificationPreferenceType.All
         });
         await _dbContext.SaveChangesAsync();
+        
+        var fileIds = chat.FileIds;
+        if (chat.ChatAvatarId is not null) 
+            fileIds.Add(chat.ChatAvatarId.Value);
+        await _filesQueueService.SetViewersAsync(new FilesViewersDto {
+            Files = fileIds,
+            Viewers = chat.Users.Select(u => u.Id).ToList()
+        });
     }
 
     public async Task DeleteUserFromGroupChat(Guid chatId , Guid userId) {
@@ -240,6 +277,14 @@ public class ChatService: IChatService {
         if (userPreference != null)
             user.ChatsNotificationPreferences.Remove(userPreference);
         await _dbContext.SaveChangesAsync();
+        
+        var fileIds = chat.FileIds;
+        if (chat.ChatAvatarId is not null) 
+            fileIds.Add(chat.ChatAvatarId.Value);
+        await _filesQueueService.SetViewersAsync(new FilesViewersDto {
+            Files = fileIds,
+            Viewers = chat.Users.Select(u => u.Id).ToList()
+        });
     }
 
     public async Task EditChat(ChatEditDto model, Guid chatId) {
@@ -251,6 +296,15 @@ public class ChatService: IChatService {
         chat.ChatAvatarId = model.AvatarId;
         chat.ChatName = model.ChatName;
         await _dbContext.SaveChangesAsync();
+        
+        var fileIds = chat.FileIds;
+        if (chat.ChatAvatarId is not null) 
+            fileIds.Add(chat.ChatAvatarId.Value);
+        await _filesQueueService.SetViewersAsync(new FilesViewersDto {
+            Files = fileIds,
+            Viewers = chat.Users.Select(u => u.Id).ToList()
+        });
+        
     }
 
     public async Task DeleteGroupChat(Guid chatId , Guid adminId) {

@@ -44,10 +44,8 @@ builder.Services.AddSwaggerGen(option => {
 });
 
 builder.Services.AddAuthorization();
-builder.Services.AddJwtAuthorisation(builder.Configuration);
+builder.Services.AddJwtAuthentication(builder.Configuration);
 
-
-builder.Services.AddBackendServiceDependencies();
 
 // Serilog
 var logger = new LoggerConfiguration()
@@ -67,7 +65,6 @@ app.UseSwaggerUI();
 //app.UseHttpsRedirection();
 
 app.UseAuthorization();
-app.UseAuthentication();
 
 app.MapControllers();
 

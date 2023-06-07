@@ -10,8 +10,11 @@ namespace ChatNet.Backend.BLL.Services;
 
 public class MessageService: IMessageService {
     private readonly BackendDbContext _dbContext;
-    public MessageService(BackendDbContext dbContext) {
+    private readonly INotificationQueueService _notificationQueueService;
+
+    public MessageService(BackendDbContext dbContext, INotificationQueueService notificationQueueService) {
         _dbContext = dbContext;
+        _notificationQueueService = notificationQueueService;
     }
 
 
@@ -20,6 +23,7 @@ public class MessageService: IMessageService {
             .FirstOrDefaultAsync(u => u.Id == senderId);
         if (user == null) throw new NotFoundException("User with this id does not found");
         var chat = await _dbContext.PrivateChats
+            .Include(c=>c.Users)
             .FirstOrDefaultAsync(c => c.Id == chatId);
         if (chat == null) throw new NotFoundException("Chat with this id not found");
         if (chat.DeletedTime.HasValue)
@@ -31,7 +35,19 @@ public class MessageService: IMessageService {
              Files = message.FileIds,
          });
         await _dbContext.SaveChangesAsync();
-            //TODO _notificationService.SendMessage(userList)
+        var tasks = chat.Users.Select(async u =>
+        {
+            await _notificationQueueService.SendNotificationAsync(new NotificationMessageDto {
+                Type = NotificationMessageType.NewMessage,
+                Title = "New message",
+                Text = "You have new message",
+                ReceiverId = u.Id,
+                SenderId = user.Id,
+                ChatId = chat.Id,
+                CreatedAt = DateTime.UtcNow
+            });
+        });
+        await Task.WhenAll(tasks);
     }
 
     public async Task EditMessage(MessageActionsDto message, Guid messageId, Guid senderId) {
