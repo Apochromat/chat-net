@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace ChatNet.Notification.API.Services; 
+namespace ChatNet.Common.Providers; 
 
 /// <summary>
 /// Provides the User ID for SignalR
