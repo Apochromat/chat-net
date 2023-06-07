@@ -59,14 +59,14 @@ public class ChatController : ControllerBase {
     [HttpGet]
     [Route("chat/{chatId}/messages")]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    public async Task<ActionResult<Pagination<MessageDto>>> GetChatWithMessages(Guid chatId, [FromQuery] int page = 1,
+    public async Task<ActionResult<Pagination<MessageDto>>> GetMessages(Guid chatId, [FromQuery] int page = 1,
         [FromQuery] int pageSize = 15) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
 
         await _permissionCheckService.CheckUserHasAccessToChat(userId, chatId);
-        return Ok(await _chatService.GetChatWithMessages(chatId, page, pageSize));
+        return Ok(await _chatService.GetMessages(chatId, page, pageSize));
     }
     
     /// <summary>

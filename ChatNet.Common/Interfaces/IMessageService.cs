@@ -1,4 +1,5 @@
 using ChatNet.Common.DataTransferObjects;
+using ChatNet.Common.Enumerations;
 
 namespace ChatNet.Common.Interfaces; 
 
@@ -29,4 +30,15 @@ public interface IMessageService {
     /// <param name="senderId"></param>
     /// <returns></returns>
     public Task DeleteMessage(Guid messageId, Guid senderId);
+
+    /// <summary>
+    /// View message 
+    /// </summary>
+    /// <param name="messageId"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public Task ViewMessage(Guid messageId, Guid userId);
+
+    public Task AddReaction(ReactionType reactionType, Guid messageId, Guid userId);
+    public Task DeleteReaction(ReactionType reactionType, Guid messageId, Guid userId);
 }

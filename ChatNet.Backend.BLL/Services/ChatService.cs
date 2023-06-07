@@ -42,7 +42,7 @@ public class ChatService: IChatService {
             }).ToList(),page, pageSize, pagesAmount)
         };
     }
-    public async Task<Pagination<MessageDto>> GetChatWithMessages(Guid chatId, int page, int pageSize) {
+    public async Task<Pagination<MessageDto>> GetMessages(Guid chatId, int page, int pageSize) {
         if (page < 1) {
             throw new ArgumentException("Page must be greater than 0");
         }
@@ -68,7 +68,13 @@ public class ChatService: IChatService {
                     TextMessage = m.TextMessage,
                     CreatedTime = m.CreatedTime,
                     EditedTime = m.EditedTime,
-                    FileIds = m.Files
+                    FileIds = m.Files,
+                    MessageReactions = m.Reactions.Select(r=> new ReactionDto {
+                        Id = r.Id,
+                        Users = r.Users.Select(u=>u.Id).ToList(),
+                        ReactionType = r.ReactionType
+                    }).ToList(),
+                    ViewedBy = m.ViewedBy
                 })
             ).ToListAsync();
         
@@ -154,6 +160,7 @@ public class ChatService: IChatService {
                 PreferenceType = NotificationPreferenceType.All
             },
         };
+        
         await _dbContext.AddRangeAsync(preferences);
         await _dbContext.SaveChangesAsync();
     }

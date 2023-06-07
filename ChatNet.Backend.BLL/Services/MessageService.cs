@@ -1,6 +1,7 @@
 using ChatNet.Backend.DAL;
 using ChatNet.Backend.DAL.Entities;
 using ChatNet.Common.DataTransferObjects;
+using ChatNet.Common.Enumerations;
 using ChatNet.Common.Exceptions;
 using ChatNet.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -17,12 +18,12 @@ public class MessageService: IMessageService {
     public async Task SendMessage(MessageActionsDto message, Guid senderId, Guid chatId) {
         var user = await _dbContext.Users
             .FirstOrDefaultAsync(u => u.Id == senderId);
-        if (user == null) throw new NotFoundException("user with this id does not found");
+        if (user == null) throw new NotFoundException("User with this id does not found");
         var chat = await _dbContext.PrivateChats
             .FirstOrDefaultAsync(c => c.Id == chatId);
         if (chat == null) throw new NotFoundException("Chat with this id not found");
         if (chat.DeletedTime.HasValue)
-            throw new MethodNotAllowedException("you can only read messages in deleted chat");
+            throw new MethodNotAllowedException("You can only read messages in deleted chat");
         await _dbContext.AddAsync(new Message {
              Chat = chat,
              User = user,
@@ -36,16 +37,19 @@ public class MessageService: IMessageService {
     public async Task EditMessage(MessageActionsDto message, Guid messageId, Guid senderId) {
         var user = await _dbContext.Users
             .FirstOrDefaultAsync(u => u.Id == senderId);
-        if (user == null) throw new NotFoundException("user with this id does not found");
+        if (user == null) throw new NotFoundException("User with this id does not found");
         var messageDb = await _dbContext.Messages
+            .Include(m=>m.User)
             .Include(m=>m.Chat)
-            .FirstOrDefaultAsync(m => m.Id == senderId 
+            .FirstOrDefaultAsync(m => m.Id == messageId 
                                       && !m.DeletedTime.HasValue
             );
         if (messageDb == null) 
-            throw new NotFoundException("message with this id does not found");
+            throw new NotFoundException("Message with this id does not found");
         if (messageDb.Chat.DeletedTime.HasValue)
-            throw new MethodNotAllowedException("you cannot edit message in deleted chat");
+            throw new MethodNotAllowedException("You cannot edit message in deleted chat");
+        if (messageDb.User != user)
+            throw new MethodNotAllowedException("You don't have permission");
         messageDb.TextMessage = message.TextMessage;
         messageDb.Files = message.FileIds;
         messageDb.EditedTime = DateTime.UtcNow;
@@ -55,15 +59,96 @@ public class MessageService: IMessageService {
     public async Task DeleteMessage(Guid messageId, Guid senderId) {
         var user = await _dbContext.Users
             .FirstOrDefaultAsync(u => u.Id == senderId);
-        if (user == null) throw new NotFoundException("user with this id does not found");
+        if (user == null) throw new NotFoundException("User with this id does not found");
         var messageDb = await _dbContext.Messages
+            .Include(m=>m.User)
             .Include(m=>m.Chat)
-            .FirstOrDefaultAsync(m => m.Id == senderId 
+            .FirstOrDefaultAsync(m => m.Id == messageId 
                                       && !m.DeletedTime.HasValue
             );
         if (messageDb == null) 
-            throw new NotFoundException("message with this id does not found or already deleted");
+            throw new NotFoundException("Message with this id does not found or already deleted");
+        if (messageDb.Chat.DeletedTime.HasValue)
+            throw new MethodNotAllowedException("You cannot delete message in deleted chat");
+        if (messageDb.User != user)
+            throw new MethodNotAllowedException("You don't have permission");
         messageDb.DeletedTime = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task ViewMessage(Guid messageId, Guid userId) {
+        var user = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) throw new NotFoundException("User with this id does not found");
+        var messageDb = await _dbContext.Messages
+            .Include(m=>m.Chat)
+            .FirstOrDefaultAsync(m => m.Id == messageId 
+                                      && !m.DeletedTime.HasValue
+            );
+        if (messageDb == null) 
+            throw new NotFoundException("Message with this id does not found or already deleted");
+        if (messageDb.ViewedBy.Contains(user.Id))
+            throw new ConflictException("You already viewed this message");
+        messageDb.ViewedBy.Add(user.Id);
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task AddReaction(ReactionType reactionType, Guid messageId, Guid userId) {
+        var user = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) throw new NotFoundException("User with this id does not found");
+        var messageDb = await _dbContext.Messages
+            .Include(m=>m.Reactions)
+            .ThenInclude(r=>r.Users)
+            .Include(m=>m.Chat)
+            .FirstOrDefaultAsync(m => m.Id == messageId 
+                                      && !m.DeletedTime.HasValue
+            );
+        if (messageDb == null) 
+            throw new NotFoundException("Message with this id does not found");
+        if (messageDb.Chat.DeletedTime.HasValue)
+            throw new MethodNotAllowedException("You cannot react to message in deleted chat");
+        var reaction = messageDb.Reactions
+            .FirstOrDefault(r => r.ReactionType == reactionType);
+        if (reaction == null) {
+            await _dbContext.AddAsync(new Reaction {
+                Users = new List<UserBackend>{user},
+                ReactionType = reactionType,
+                ReactedMessage = messageDb
+            });
+        }
+        else {
+            if (reaction.Users.Contains(user))
+                throw new ConflictException("You already reacted");
+            reaction.Users.Add(user);
+        }
+        await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task DeleteReaction(ReactionType reactionType, Guid messageId, Guid userId) {
+        var user = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) throw new NotFoundException("User with this id does not found");
+        var messageDb = await _dbContext.Messages
+            .Include(m=>m.Reactions)
+            .ThenInclude(r=>r.Users)
+            .Include(m=>m.Chat)
+            .FirstOrDefaultAsync(m => m.Id == messageId 
+                                      && !m.DeletedTime.HasValue
+            );
+        if (messageDb == null) 
+            throw new NotFoundException("Message with this id does not found");
+        if (messageDb.Chat.DeletedTime.HasValue)
+            throw new MethodNotAllowedException("You cannot react to message in deleted chat");  
+        var reaction = messageDb.Reactions
+            .FirstOrDefault(r => r.ReactionType == reactionType);
+        if (reaction == null)
+            throw new NotFoundException("Reaction not found");
+        if (!reaction.Users.Contains(user))
+            throw new ConflictException("You didn't react to this message");
+        if (reaction.Users.Count <= 1)
+             _dbContext.Remove(reaction);
+        else reaction.Users.Remove(user);
         await _dbContext.SaveChangesAsync();
     }
 }

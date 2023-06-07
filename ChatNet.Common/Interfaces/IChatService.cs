@@ -22,7 +22,7 @@ public interface IChatService {
     /// <param name="page"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    public Task<Pagination<MessageDto>> GetChatWithMessages(Guid chatId, int page, int pageSize);
+    public Task<Pagination<MessageDto>> GetMessages(Guid chatId, int page, int pageSize);
     /// <summary>
     /// Get chat details
     /// </summary>

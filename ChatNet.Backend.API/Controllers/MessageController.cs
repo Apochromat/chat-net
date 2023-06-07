@@ -83,4 +83,21 @@ public class MessageController: ControllerBase {
         await _messageService.DeleteMessage(messageId, userId);
         return Ok();
     }
+    
+    /// <summary>
+    /// View message 
+    /// </summary>
+    /// <param name="messageId"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpPost]
+    [Route("{messageId}")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult> ViewMessage(Guid messageId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _messageService.ViewMessage(messageId, userId);
+        return Ok();
+    }
 }
