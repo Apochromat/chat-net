@@ -27,12 +27,12 @@ public class MessageSernderService : IMessageSenderService {
         try {
             using var connection = factory.CreateConnection();
             using var channel = connection.CreateModel();
-            channel.ExchangeDeclare(exchange: _configuration["RabbitMQ:ExchangeName"], type: ExchangeType.Fanout);
+            channel.ExchangeDeclare(exchange: _configuration["RabbitMQ:UsersExchangeName"], type: ExchangeType.Fanout);
                 
             var message = JsonSerializer.Serialize(messageDto);
             var body = Encoding.UTF8.GetBytes(message);
 
-            channel.BasicPublish(exchange: _configuration["RabbitMQ:ExchangeName"],
+            channel.BasicPublish(exchange: _configuration["RabbitMQ:UsersExchangeName"],
                 routingKey: "",
                 basicProperties: null,
                 body: body);

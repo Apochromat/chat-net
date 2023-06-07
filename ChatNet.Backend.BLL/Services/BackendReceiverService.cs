@@ -12,11 +12,11 @@ using RabbitMQ.Client.Events;
 
 namespace ChatNet.Backend.BLL.Services; 
 
-public class BackendRecieverService : BackgroundService {
+public class BackendReceiverService : BackgroundService {
      private readonly IConnection _connection;
     private readonly IModel _channel;
     private readonly IConfiguration _configuration;
-    private readonly ILogger<BackendRecieverService> _logger;
+    private readonly ILogger<BackendReceiverService> _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
     /// <summary>
@@ -25,7 +25,7 @@ public class BackendRecieverService : BackgroundService {
     /// <param name="configuration"></param>
     /// <param name="logger"></param>
     /// <param name="serviceScopeFactory"></param>
-    public BackendRecieverService(IConfiguration configuration, ILogger<BackendRecieverService> logger, IServiceScopeFactory serviceScopeFactory) {
+    public BackendReceiverService(IConfiguration configuration, ILogger<BackendReceiverService> logger, IServiceScopeFactory serviceScopeFactory) {
         _configuration = configuration;
         _logger = logger;
         _serviceScopeFactory = serviceScopeFactory;
@@ -33,11 +33,11 @@ public class BackendRecieverService : BackgroundService {
         var factory = new ConnectionFactory() { HostName = _configuration["RabbitMQ:HostName"] };
         _connection = factory.CreateConnection();
         _channel = _connection.CreateModel();
-        _channel.ExchangeDeclare(exchange: _configuration["RabbitMQ:ExchangeName"], type: ExchangeType.Fanout);
+        _channel.ExchangeDeclare(exchange: _configuration["RabbitMQ:UsersExchangeName"], type: ExchangeType.Fanout);
 
-        var queueName = _channel.QueueDeclare(queue: _configuration["RabbitMQ:QueueName"]).QueueName;
+        var queueName = _channel.QueueDeclare(queue: _configuration["RabbitMQ:UsersQueueName"]).QueueName;
         _channel.QueueBind(queue: queueName,
-            exchange: _configuration["RabbitMQ:ExchangeName"],
+            exchange: _configuration["RabbitMQ:UsersExchangeName"],
             routingKey: string.Empty);
     }
 
@@ -72,7 +72,7 @@ public class BackendRecieverService : BackgroundService {
             }
         };
 
-        _channel.BasicConsume(queue: _configuration["RabbitMQ:QueueName"], autoAck: true, consumer: consumer);
+        _channel.BasicConsume(queue: _configuration["RabbitMQ:UsersQueueName"], autoAck: true, consumer: consumer);
 
         return Task.CompletedTask;
     }
