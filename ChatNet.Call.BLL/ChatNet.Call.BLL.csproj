@@ -8,10 +8,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="Services\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\ChatNet.Call.DAL\ChatNet.Call.DAL.csproj" />
       <ProjectReference Include="..\ChatNet.Common\ChatNet.Common.csproj" />
     </ItemGroup>

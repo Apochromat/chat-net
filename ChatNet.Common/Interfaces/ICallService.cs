@@ -1,4 +1,6 @@
-﻿namespace ChatNet.Common.Interfaces; 
+﻿using ChatNet.Common.DataTransferObjects;
+
+namespace ChatNet.Common.Interfaces; 
 
 /// <summary>
 /// Service for call management
@@ -9,7 +11,7 @@ public interface ICallService {
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    Task GetCurrentCalls(Guid userId);
+    Task<List<CallDto>> GetCurrentCalls(Guid userId);
     
     /// <summary>
     /// Call somebody
@@ -17,7 +19,7 @@ public interface ICallService {
     /// <param name="callerId"></param>
     /// <param name="receiverId"></param>
     /// <returns></returns>
-    Task CallSomebody(Guid callerId, Guid receiverId);
+    Task<Guid> CallSomebody(Guid callerId, Guid receiverId);
     
     /// <summary>
     /// Accept call
@@ -42,4 +44,12 @@ public interface ICallService {
     /// <param name="userId"></param>
     /// <returns></returns>
     Task HangUpCall(Guid callId, Guid userId);
+    
+    /// <summary>
+    /// Cancel call
+    /// </summary>
+    /// <param name="callId"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    Task CancelCall(Guid callId, Guid userId);
 }

@@ -1,5 +1,9 @@
+using ChatNet.Call.API.Hubs;
+using ChatNet.Common.Exceptions;
+using ChatNet.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ChatNet.Call.API.Controllers;
 
@@ -11,13 +15,19 @@ namespace ChatNet.Call.API.Controllers;
 [Authorize(AuthenticationSchemes = "Bearer")]
 public class CallController : ControllerBase {
     private readonly ILogger<CallController> _logger;
+    private readonly ICallService _callService;
+    private readonly IHubContext<CallHub> _callHubContext;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="logger"></param>
-    public CallController(ILogger<CallController> logger) {
+    /// <param name="callService"></param>
+    /// <param name="callHubContext"></param>
+    public CallController(ILogger<CallController> logger, ICallService callService, IHubContext<CallHub> callHubContext) {
         _logger = logger;
+        _callService = callService;
+        _callHubContext = callHubContext;
     }
 
     /// <summary>
@@ -25,8 +35,15 @@ public class CallController : ControllerBase {
     /// </summary>
     /// <returns></returns>
     [HttpPost]
-    public async Task<ActionResult> CallSomebody() {
-        return Ok();
+    [Route("{receiverId}")]
+    public async Task<ActionResult<Guid>> CallSomebody([FromRoute] Guid receiverId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        var callId = await _callService.CallSomebody(userId, receiverId);
+        await _callHubContext.Clients.User(userId.ToString()).SendAsync("created", callId);
+        return Ok(callId);
     }
 
     /// <summary>
@@ -35,7 +52,11 @@ public class CallController : ControllerBase {
     /// <returns></returns>
     [HttpGet]
     public async Task<ActionResult> GetCurrentCalls() {
-        return Ok();
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        
+        return Ok(await _callService.GetCurrentCalls(userId));
     }
 
     /// <summary>
@@ -46,6 +67,11 @@ public class CallController : ControllerBase {
     [HttpPost]
     [Route("{callId}/accept")]
     public async Task<ActionResult> AcceptCall([FromRoute] Guid callId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _callService.AcceptCall(callId, userId);
         return Ok();
     }
 
@@ -57,6 +83,11 @@ public class CallController : ControllerBase {
     [HttpPost]
     [Route("{callId}/reject")]
     public async Task<ActionResult> RejectCall([FromRoute] Guid callId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _callService.RejectCall(callId, userId);
         return Ok();
     }
     
@@ -68,6 +99,11 @@ public class CallController : ControllerBase {
     [HttpPost]
     [Route("{callId}/cancel")]
     public async Task<ActionResult> CancelCall([FromRoute] Guid callId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _callService.CancelCall(callId, userId);
         return Ok();
     }
 
@@ -79,6 +115,11 @@ public class CallController : ControllerBase {
     [HttpPost]
     [Route("{callId}/hangup")]
     public async Task<ActionResult> HangupCall([FromRoute] Guid callId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+
+        await _callService.HangUpCall(callId, userId);
         return Ok();
     }
 }

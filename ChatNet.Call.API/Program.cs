@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options => {
     options.AddDefaultPolicy(
         policy => {
-            policy.WithOrigins("null")
+            policy.WithOrigins("http://localhost:63342/")
                 .AllowAnyHeader()
                 .AllowAnyMethod()
                 .AllowCredentials()
@@ -28,6 +28,7 @@ builder.Services.AddControllers().AddJsonOptions(opts => {
     var enumConverter = new JsonStringEnumConverter();
     opts.JsonSerializerOptions.Converters.Add(enumConverter);
 });
+builder.Services.AddCallServiceDependencies(builder.Configuration);
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -61,7 +62,10 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 
 // SignalR
 builder.Services.AddSingleton<IUserIdProvider, SignalRUserIdProvider>();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(o => {
+    o.EnableDetailedErrors = true;
+    o.MaximumReceiveMessageSize = 102400000;
+});
 
 // Serilog
 var logger = new LoggerConfiguration()

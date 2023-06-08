@@ -8,8 +8,20 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
+// Add Cors Policy
+builder.Services.AddCors(options => {
+    options.AddDefaultPolicy(
+        policy => {
+            policy.WithOrigins("null")
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials()
+                .SetIsOriginAllowed(_ => true);
+        });
+});
+
+// Add services to the container.
 builder.Services.AddControllers();
 
 // Swagger
@@ -55,6 +67,8 @@ builder.Logging.AddSerilog(logger);
 var app = builder.Build();
 
 await app.MigrateDbAsync();
+
+app.UseCors();
 
 app.UseSwagger();
 app.UseSwaggerUI();
