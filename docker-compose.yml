@@ -4,6 +4,8 @@ services:
     build:
       context: .
       dockerfile: ChatNet.Gateway/Dockerfile
+    ports:
+      - "5253:80"
     restart: always
     networks:
       - internal-network
