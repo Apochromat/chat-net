@@ -118,7 +118,7 @@ public class AuthService : IAuthService {
 
         device.LastActivity = DateTime.UtcNow;
         device.ExpirationDate = DateTime.UtcNow.AddDays(_configuration.GetSection("Jwt")
-            .GetValue<int>("RefreshTokenLifetimeInMonths"));
+            .GetValue<int>("RefreshTokenLifetimeInDays"));
         
         await _authDbContext.SaveChangesAsync();
 
@@ -216,6 +216,8 @@ public class AuthService : IAuthService {
                 SecurityAlgorithms.HmacSha256));
 
         device.LastActivity = DateTime.UtcNow;
+        device.ExpirationDate = DateTime.UtcNow.AddMonths(_configuration.GetSection("Jwt")
+            .GetValue<int>("RefreshTokenLifetimeInMonths"));
         await _authDbContext.SaveChangesAsync();
 
         return new TokenResponseDto() {
