@@ -9,6 +9,10 @@ public enum NotificationMessageType {
     /// </summary>
     NewMessage,
     /// <summary>
+    /// Sent when a new message was sent, but not showed for user.
+    /// </summary>
+    NewMessageMuted,
+    /// <summary>
     /// Sent when a new reaction was added to a message.
     /// </summary>
     NewReaction,
@@ -35,7 +39,7 @@ public enum NotificationMessageType {
     /// <summary>
     /// Sent when a new chat was created.
     /// </summary>
-    ChatUpdate,
+    ChatCreated,
     /// <summary>
     /// Sent when somebody calls the user.
     /// </summary>

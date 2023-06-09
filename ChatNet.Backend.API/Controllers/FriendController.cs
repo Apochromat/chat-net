@@ -15,7 +15,7 @@ public class FriendController: ControllerBase {
     private readonly IFriendService _friendService;
 
     /// <summary>
-    /// constructor
+    /// Constructor
     /// </summary>
     /// <param name="friendService"></param>
     public FriendController(IFriendService friendService) {
@@ -23,7 +23,7 @@ public class FriendController: ControllerBase {
     }
     
     /// <summary>
-    /// get user's friend paginated list
+    /// Get user's friend paginated list
     /// </summary>
     /// <param name="page"></param>
     /// <param name="pageSize"></param>
@@ -32,7 +32,7 @@ public class FriendController: ControllerBase {
     [HttpGet]
     [Route("friends")]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    public async Task<ActionResult<ChatListDto>> GetFriends([FromQuery] int page = 1,
+    public async Task<ActionResult<Pagination<Guid>>> GetFriends([FromQuery] int page = 1,
         [FromQuery] int pageSize = 15) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
@@ -41,26 +41,80 @@ public class FriendController: ControllerBase {
     }
 
     /// <summary>
-    /// add friend
+    /// Get user's friendship requests
     /// </summary>
+    /// <remarks>
+    /// If myRequest = true you get requests sent by yourself , else get requests sent for you
+    /// </remarks>
+    /// <param name="myRequests"></param>
     /// <param name="page"></param>
     /// <param name="pageSize"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpGet]
+    [Route("friendship/requests")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult<Pagination<Guid>>> GetRequests([FromQuery] bool myRequests = true,[FromQuery] int page = 1,
+        [FromQuery] int pageSize = 15) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        } 
+        return Ok(await _friendService.GetUserFriendShipRequests(userId , myRequests , page , pageSize));
+    }
+    
+    /// <summary>
+    /// Send friendship request
+    /// </summary>
     /// <param name="friendId"></param>
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpPost]
     [Route("friend/{friendId}")]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    public async Task<ActionResult<ChatListDto>> AddFriend(Guid friendId) {
+    public async Task<ActionResult> SendFriendShipRequest(Guid friendId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        } 
+        await _friendService.SendFriendshipRequest(userId, friendId);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Accept friendship request
+    /// </summary>
+    /// <param name="friendId"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpPost]
+    [Route("friendship/request/{friendId}")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult> AcceptFriendShipRequest(Guid friendId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        } 
+        await _friendService.AcceptFriendshipRequest(userId, friendId);
+        return Ok();
+    }
+
+    /// <summary>
+    /// Reject friendship request
+    /// </summary>
+    /// <param name="friendId"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpDelete]
+    [Route("friendship/request/{friendId}")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult> RejectFriendshipRequest(Guid friendId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _friendService.AddFriend(userId, friendId);
+        await _friendService.RejectFriendshipRequest(userId, friendId);
         return Ok();
     }
     
     /// <summary>
-    /// delete friend
+    /// Delete friend
     /// </summary>
     /// <param name="friendId"></param>
     /// <returns></returns>
@@ -68,7 +122,7 @@ public class FriendController: ControllerBase {
     [HttpDelete]
     [Route("friend/{friendId}")]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    public async Task<ActionResult<ChatListDto>> DeleteFriend(Guid friendId) {
+    public async Task<ActionResult> DeleteFriend(Guid friendId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }

@@ -57,13 +57,15 @@ public interface IChatService {
     /// <param name="creatorId"></param>
     /// <returns></returns>
     public Task CreateGroupChat(ChatCreateDto chatModel, Guid creatorId);
+
     /// <summary>
     /// Add user to group chat
     /// </summary>
     /// <param name="chatId"></param>
     /// <param name="userId"></param>
+    /// <param name="adminId"></param>
     /// <returns></returns>
-    public Task AddUserToGroupChat(Guid chatId , Guid userId);
+    public Task AddUserToGroupChat(Guid chatId , Guid userId, Guid adminId);
     /// <summary>
     /// Delete user from group chat
     /// </summary>

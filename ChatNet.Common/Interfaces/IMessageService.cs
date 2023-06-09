@@ -34,11 +34,25 @@ public interface IMessageService {
     /// <summary>
     /// View message 
     /// </summary>
+    /// <param name="messageIds"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public Task ViewMessage(List<Guid> messageIds, Guid userId);
+
+    /// <summary>
+    /// Add reaction
+    /// </summary>
+    /// <param name="reactionType"></param>
     /// <param name="messageId"></param>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public Task ViewMessage(Guid messageId, Guid userId);
-
     public Task AddReaction(ReactionType reactionType, Guid messageId, Guid userId);
+    /// <summary>
+    /// Delete reaction
+    /// </summary>
+    /// <param name="reactionType"></param>
+    /// <param name="messageId"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
     public Task DeleteReaction(ReactionType reactionType, Guid messageId, Guid userId);
 }

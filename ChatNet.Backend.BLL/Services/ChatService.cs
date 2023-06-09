@@ -11,13 +11,22 @@ namespace ChatNet.Backend.BLL.Services;
 public class ChatService: IChatService {
     private readonly BackendDbContext _dbContext;
     private readonly IFilesQueueService _filesQueueService;
+    private readonly INotificationQueueService _notificationQueueService;
 
-    public ChatService(BackendDbContext dbContext, IFilesQueueService filesQueueService) {
+    public ChatService(BackendDbContext dbContext, IFilesQueueService filesQueueService, INotificationQueueService notificationQueue) {
         _dbContext = dbContext;
         _filesQueueService = filesQueueService;
+        _notificationQueueService = notificationQueue;
     }
 
     public async Task<ChatListDto> GetChatList(Guid userId, int page, int pageSize) {
+        if (page < 1) {
+            throw new ArgumentException("Page must be greater than 0");
+        }
+
+        if (pageSize < 1) {
+            throw new ArgumentException("Page size must be greater than 0");
+        }
         var user = await _dbContext.Users
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) 
@@ -26,8 +35,6 @@ public class ChatService: IChatService {
             .Where(c => c.Users
                 .Contains(user))
             .OrderBy(c => c.Messages.Max(m=>m.CreatedTime))
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
             .ToListAsync();
         
         var pagesAmount = (int)Math.Ceiling((double)chats.Count / pageSize);
@@ -36,7 +43,10 @@ public class ChatService: IChatService {
             throw new NotFoundException("Page not found");
         }
         return new ChatListDto {
-            UserChats = new Pagination<ChatShortDto>(chats.Select(c => new ChatShortDto {
+            UserChats = new Pagination<ChatShortDto>(chats
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize).ToList()
+                .Select(c => new ChatShortDto {
                 Id = c.Id,
                 ChatAvatarId = c.ChatAvatarId,
                 ChatName = c.ChatName,
@@ -62,8 +72,6 @@ public class ChatService: IChatService {
             .Where(c => c.Id == chatId)
             .SelectMany(c => c.Messages
                 .OrderByDescending(m => m.CreatedTime)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
                 .Select(m => new MessageDto {
                     Id = m.Id,
                     SenderId = m.User.Id,
@@ -86,7 +94,9 @@ public class ChatService: IChatService {
             throw new NotFoundException("Page not found");
         }
 
-        return new Pagination<MessageDto>(chatMessages, page, pageSize, pagesAmount);
+        return new Pagination<MessageDto>(chatMessages
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize).ToList(), page, pageSize, pagesAmount);
     }
     public async Task<ChatFullDto> GetChatDetails(Guid chatId) {
         var chat = await _dbContext.Chats
@@ -180,6 +190,15 @@ public class ChatService: IChatService {
         
         await _dbContext.AddRangeAsync(preferences);
         await _dbContext.SaveChangesAsync();
+        await _notificationQueueService.SendNotificationAsync(new NotificationMessageDto {
+            Type = NotificationMessageType.ChatCreated,
+            Title = "New chat created",
+            Text = $"You have new chat named {chat.ChatName}",
+            ReceiverId = user.Id,
+            SenderId = creator.Id,
+            ChatId = chat.Id,
+            CreatedAt = DateTime.UtcNow
+        });
         await _filesQueueService.SetViewersAsync(new FilesViewersDto {
             Files = chatModel.AvatarId == null || !chatModel.AvatarId.HasValue
                 ? new List<Guid>()
@@ -215,6 +234,21 @@ public class ChatService: IChatService {
             });
         await _dbContext.AddRangeAsync(preferences);
         await _dbContext.SaveChangesAsync();
+        var tasks = chat.Users
+            .Where(u=>u.Id != admin.Id)
+            .Select(async u =>
+        {
+            await _notificationQueueService.SendNotificationAsync(new NotificationMessageDto {
+                Type = NotificationMessageType.ChatCreated,
+                Title = "New chat created",
+                Text = $"You have new chat named {chat.ChatName}",
+                ReceiverId = u.Id,
+                SenderId = admin.Id,
+                ChatId = chat.Id,
+                CreatedAt = DateTime.UtcNow
+            });
+        });
+        await Task.WhenAll(tasks);
         await _filesQueueService.SetViewersAsync(new FilesViewersDto {
             Files = chatModel.AvatarId == null || !chatModel.AvatarId.HasValue
                 ? new List<Guid>()
@@ -223,20 +257,25 @@ public class ChatService: IChatService {
         });
     }
 
-    public async Task AddUserToGroupChat(Guid chatId , Guid userId) {
+    public async Task AddUserToGroupChat(Guid chatId , Guid userId, Guid adminId) {
         var user = await _dbContext.Users
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) 
-            throw new NotFoundException("user with this id not found");
+            throw new NotFoundException("User with this id not found");
         var chat = await _dbContext.Chats
             .Include(c=>c.Users)
             .FirstOrDefaultAsync(c => 
                 !c.DeletedTime.HasValue
                 && c.Id == chatId);
+        var admin = await _dbContext.Users
+            .Include(u=>u.Friends)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (admin != null && !admin.Friends.Contains(user))
+            throw new MethodNotAllowedException("User with this id is not your friend");
         if (chat == null) 
             throw new NotFoundException("Chat with this id not found");
         if (chat.Users.Contains(user))
-            throw new ConflictException("this user is already in this chat");
+            throw new ConflictException("This user is already in this chat");
         user.Chats.Add(chat);
         await _dbContext.AddAsync(new NotificationPreferences {
             PreferencedChat = chat,

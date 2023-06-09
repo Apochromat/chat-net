@@ -232,7 +232,7 @@ public class ChatController : ControllerBase {
             throw new UnauthorizedException("User is not authorized");
         }
         await _permissionCheckService.CheckUserIsChatAdmin(adminId, chatId);
-        await _chatService.AddUserToGroupChat(chatId , userId);
+        await _chatService.AddUserToGroupChat(chatId , userId, adminId);
         return Ok();
     }
     

@@ -1,4 +1,5 @@
 using ChatNet.Common.DataTransferObjects;
+using ChatNet.Common.Enumerations;
 using ChatNet.Common.Exceptions;
 using ChatNet.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -83,21 +84,59 @@ public class MessageController: ControllerBase {
         await _messageService.DeleteMessage(messageId, userId);
         return Ok();
     }
+
+    /// <summary>
+    /// View messages
+    /// </summary>
+    /// <param name="messages"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpPost]
+    [Route("messages/view")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult> ViewMessage([FromBody] List<Guid> messages) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _messageService.ViewMessage(messages, userId);
+        return Ok();
+    }
     
     /// <summary>
-    /// View message 
+    /// Add reaction to message
     /// </summary>
+    /// <param name="type"></param>
     /// <param name="messageId"></param>
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpPost]
-    [Route("{messageId}")]
+    [Route("{messageId}/reaction")]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    public async Task<ActionResult> ViewMessage(Guid messageId) {
+    public async Task<ActionResult> AddReaction([FromQuery] ReactionType type
+        ,Guid messageId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _messageService.ViewMessage(messageId, userId);
+        await _messageService.AddReaction(type, messageId, userId);
+        return Ok();
+    }
+    
+    /// <summary>
+    /// Delete reaction 
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="messageId"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpDelete]
+    [Route("{messageId}/reaction")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult> DeleteReaction([FromQuery] ReactionType type
+        ,Guid messageId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _messageService.DeleteReaction(type, messageId, userId);
         return Ok();
     }
 }
