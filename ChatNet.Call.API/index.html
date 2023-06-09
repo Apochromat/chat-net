@@ -81,7 +81,7 @@
             const password = passwordInput.value;
             try {
                 const response = await $.ajax({
-                    url: `http://localhost:5021/api/auth/login`,
+                    url: `http://localhost:5253/api/auth/login`,
                     method: "POST",
                     data: JSON.stringify({ email: login, password }),
                     contentType: "application/json",
@@ -90,7 +90,7 @@
                 jwt = response.accessToken
                 
                 connection = new signalR.HubConnectionBuilder()
-                    .withUrl("http://localhost:5297/api/call/hub", {
+                    .withUrl("http://localhost:5253/api/call/hub", {
                         accessTokenFactory: () => {
                             return jwt
                         }})
