@@ -119,6 +119,5 @@ volumes:
 
 networks:
   internal-network:
-    internal: true
   external-network:
     external: true
