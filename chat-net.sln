@@ -30,6 +30,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatNet.Gateway", "ChatNet.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatNet.Notification.Client", "ChatNet.Notification.Client\ChatNet.Notification.Client.csproj", "{2B68A871-A09D-4AF4-B5EE-4E23A82AE99B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatNet.Call.DAL", "ChatNet.Call.DAL\ChatNet.Call.DAL.csproj", "{F05BCAFD-E7F6-4B8A-AE0F-1840F5621A16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatNet.Call.BLL", "ChatNet.Call.BLL\ChatNet.Call.BLL.csproj", "{2D12C3AE-3F64-4BBB-AEA3-EFC7A70325FC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChatNet.Call.API", "ChatNet.Call.API\ChatNet.Call.API.csproj", "{80F0FD48-404F-46E6-9238-B5CF999333AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -96,5 +102,17 @@ Global
 		{2B68A871-A09D-4AF4-B5EE-4E23A82AE99B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B68A871-A09D-4AF4-B5EE-4E23A82AE99B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B68A871-A09D-4AF4-B5EE-4E23A82AE99B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F05BCAFD-E7F6-4B8A-AE0F-1840F5621A16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F05BCAFD-E7F6-4B8A-AE0F-1840F5621A16}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F05BCAFD-E7F6-4B8A-AE0F-1840F5621A16}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F05BCAFD-E7F6-4B8A-AE0F-1840F5621A16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2D12C3AE-3F64-4BBB-AEA3-EFC7A70325FC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D12C3AE-3F64-4BBB-AEA3-EFC7A70325FC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D12C3AE-3F64-4BBB-AEA3-EFC7A70325FC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D12C3AE-3F64-4BBB-AEA3-EFC7A70325FC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80F0FD48-404F-46E6-9238-B5CF999333AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80F0FD48-404F-46E6-9238-B5CF999333AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80F0FD48-404F-46E6-9238-B5CF999333AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80F0FD48-404F-46E6-9238-B5CF999333AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

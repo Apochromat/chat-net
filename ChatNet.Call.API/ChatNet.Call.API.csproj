@@ -9,19 +9,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="7.0.5">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.5">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Serilog" Version="2.12.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ChatNet.FileStorage.BLL\ChatNet.FileStorage.BLL.csproj" />
+      <ProjectReference Include="..\ChatNet.Call.BLL\ChatNet.Call.BLL.csproj" />
+      <ProjectReference Include="..\ChatNet.Common\ChatNet.Common.csproj" />
     </ItemGroup>
 
     <ItemGroup>

@@ -78,16 +78,41 @@
       "Priority": 1
     },
     {
-      "DownstreamPathTemplate": "/api/notification/hub/{path}",
+      "DownstreamPathTemplate": "/api/call",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5297
+        }
+      ],
+      "UpstreamPathTemplate": "/api/call",
+      "SwaggerKey": "call"
+    },
+    {
+      "DownstreamPathTemplate": "/api/call/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5297
+        }
+      ],
+      "UpstreamPathTemplate": "/api/call/{everything}",
+      "SwaggerKey": "call",
+      "Priority": 0
+    },
+    {
+      "DownstreamPathTemplate": "/api/call/hub",
       "DownstreamScheme": "ws",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5023
+          "Port": 5297
         }
       ],
-      "UpstreamPathTemplate": "/api/notification/hub/{path}",
-      "SwaggerKey": "notification",
+      "UpstreamPathTemplate": "/api/call/hub",
+      "SwaggerKey": "call",
       "Priority": 1
     },
     {
@@ -153,6 +178,16 @@
           "Name": "Notification API",
           "Version": "v1",
           "Url": "http://localhost:5023/swagger/v1/swagger.json"
+        }
+      ]
+    },
+    {
+      "Key": "call",
+      "Config": [
+        {
+          "Name": "Call API",
+          "Version": "v1",
+          "Url": "http://localhost:5297/swagger/v1/swagger.json"
         }
       ]
     }
