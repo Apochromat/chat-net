@@ -1,35 +1,36 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Simple Video Chat</title>
+    <title>Video Chat</title>
     <style>
         video {
             width: 300px;
             height: 225px;
         }
+        
+        .loading {
+            background-image: url("https://upload.wikimedia.org/wikipedia/commons/b/b1/Loading_icon.gif?20151024034921");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
     </style>
 </head>
 <body>
-    <h1>Simple Video Chat</h1>
+    <h1>Video Chat</h1>
     <div>
-        <video id="localVideo" autoplay muted></video>
+        <video id="localVideo" autoplay controls muted></video>
         <video id="remoteVideo" autoplay></video>
     </div>
-    <input placeholder="login" id="login" value="user@example.com">
-    <input placeholder="password" id="password" value="P@ssw0rd">
+    <label for="login">Email:</label><input placeholder="login" id="login" value="user@example.com">
+    <label for="password">Password</label><input placeholder="password" id="password" value="P@ssw0rd">
     <button onclick="handleLogin()">Login</button>
-    <input placeholder="userId" id="receiver" value="8ed0787d-ee93-4a2d-bb33-83c65c47bbcf">
-    <button onclick="handleCall()">Call</button>
-    <input placeholder="CallID" id="call" value="8ed0787d-ee93-4a2d-bb33-83c65c47bbcf">
+    <label for="call">Call Id:</label><input placeholder="callID" id="call" value="8ed0787d-ee93-4a2d-bb33-83c65c47bbcf">
     <button onclick="handleJoin()">Join</button>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
     <script>
-        var connection;
-        
-        /****************************************************************************
-         * Initial setup
-         ****************************************************************************/
+        let connection;
 
         const configuration = {
             'iceServers': [{
@@ -37,9 +38,6 @@
             }]
         };
         const peerConn = new RTCPeerConnection(configuration);
-
-        let localStream;
-        let remoteStream;
 
         let isInitiator = false;
         let myCallId;
@@ -49,17 +47,12 @@
         const loginInput = document.getElementById("login");
         const passwordInput = document.getElementById("password");
         const callIdInput = document.getElementById("call");
-        const receiverIdInput = document.getElementById("receiver");
 
-        //setup my video here.
         grabWebCamVideo();
-        /****************************************************************************
-         * User media (webcam)
-         ****************************************************************************/
         function grabWebCamVideo() {
             console.log('Getting user media (video) ...');
             navigator.mediaDevices.getUserMedia({
-                audio: true,
+                audio: { noiseSuppression: true },
                 video: true
             })
                 .then(gotStream)
@@ -70,25 +63,15 @@
 
         function gotStream(stream) {
             console.log('getUserMedia video stream URL:', stream);
-            localStream = stream;
-            peerConn.addStream(localStream);
+            //localStream = stream;
+            peerConn.addStream(stream);
             localVideo.srcObject = stream;
         }
 
-        /****************************************************************************
-         * Signaling server
-         ****************************************************************************/
-
+        // Signaling server
         async function handleJoin() {
             const callId = callIdInput.value;
             connection.invoke("Join", callId).catch(function (err) {
-                return console.error(err.toString());
-            });
-        }
-        
-        async function handleCall() {
-            const receiverId = callIdInput.value;
-            connection.invoke("CallSomebody", receiverId).catch(function (err) {
                 return console.error(err.toString());
             });
         }
@@ -105,7 +88,7 @@
                 })
                 console.log(response.accessToken);
                 jwt = response.accessToken
-                // Connect to the signaling server
+                
                 connection = new signalR.HubConnectionBuilder()
                     .withUrl("http://localhost:5297/api/call/hub", {
                         accessTokenFactory: () => {
@@ -123,11 +106,15 @@
 
                     connection.on('created', function (callId) {
                         console.log('Created call', callId);
+                    });
+
+                    connection.on('joinedAsCaller', function (callId) {
+                        console.log('This peer has joined room', callId);
                         myCallId = callId;
                         isInitiator = true;
                     });
 
-                    connection.on('joined', function (callId) {
+                    connection.on('joinedAsReceiver', function (callId) {
                         console.log('This peer has joined room', callId);
                         myCallId = callId;
                         isInitiator = false;
@@ -143,7 +130,6 @@
                         signalingMessageCallback(message);
                     });
 
-
                 }).catch(function (err) {
                     return console.error(err.toString());
                 });
@@ -152,9 +138,6 @@
             }
         }
         
-        /**
-         * Send message to signaling server
-         */
         function sendMessage(message) {
             console.log('Client sending message: ', message);
             connection.invoke("SendMessage", message).catch(function (err) {
@@ -162,29 +145,36 @@
             });
         }
 
-        /****************************************************************************
-         * WebRTC peer connection and data channel
-         ****************************************************************************/
+        // WebRTC peer connection and data channel
 
         var dataChannel;
 
         function signalingMessageCallback(message) {
             if (message.type === 'offer') {
                 console.log('Got offer. Sending answer to peer.');
-                peerConn.setRemoteDescription(new RTCSessionDescription(message), function () { },
-                    logError);
-                peerConn.createAnswer(onLocalSessionCreated, logError);
+                peerConn.setRemoteDescription(new RTCSessionDescription(message))
+                    .catch(function (err) {
+                        return console.error(err.toString());
+                    });
+                peerConn.createAnswer()
+                    .then(function (desc) {
+                        onLocalSessionCreated(desc)
+                    })
+                    .catch(function (err) {
+                        return console.error(err.toString());
+                    });
 
             } else if (message.type === 'answer') {
                 console.log('Got answer.');
-                peerConn.setRemoteDescription(new RTCSessionDescription(message), function () { },
-                    logError);
+                peerConn.setRemoteDescription(new RTCSessionDescription(message))
+                    .catch(function (err) {
+                        return console.error(err.toString());
+                    });
 
             } else if (message.type === 'candidate') {
                 peerConn.addIceCandidate(new RTCIceCandidate({
                     candidate: message.candidate
                 }));
-
             }
         }
 
@@ -192,17 +182,18 @@
             console.log('Creating Peer connection as initiator?', isInitiator, 'config:',
                 config);
 
+            remoteVideo.classList.add('loading');
+            
             // send any ice candidates to the other peer
             peerConn.onicecandidate = function (event) {
                 console.log('icecandidate event:', event);
                 if (event.candidate) {
-                    // Trickle ICE
-                    //sendMessage({
-                    //    type: 'candidate',
-                    //    label: event.candidate.sdpMLineIndex,
-                    //    id: event.candidate.sdpMid,
-                    //    candidate: event.candidate.candidate
-                    //});
+                    sendMessage({
+                       type: 'candidate',
+                       label: event.candidate.sdpMLineIndex,
+                       id: event.candidate.sdpMid,
+                       candidate: event.candidate.candidate
+                    });
                 } else {
                     console.log('End of candidates.');
                     // Vanilla ICE
@@ -221,7 +212,14 @@
                 onDataChannelCreated(dataChannel);
 
                 console.log('Creating an offer');
-                peerConn.createOffer(onLocalSessionCreated, logError);
+                peerConn.createOffer()
+                    .then(function (desc) {
+                        onLocalSessionCreated(desc)
+                    })
+                    .catch(function (err) {
+                        return console.error(err.toString());
+                    });
+                
             } else {
                 peerConn.ondatachannel = function (event) {
                     console.log('ondatachannel:', event.channel);
@@ -233,11 +231,14 @@
 
         function onLocalSessionCreated(desc) {
             console.log('local session created:', desc);
-            peerConn.setLocalDescription(desc, function () {
-                // Trickle ICE
-                //console.log('sending local desc:', peerConn.localDescription);
-                //sendMessage(peerConn.localDescription);
-            }, logError);
+            peerConn.setLocalDescription(desc)
+                .then(function () {
+                    console.log('sending local desc:', peerConn.localDescription);
+                    sendMessage(peerConn.localDescription);
+                })
+                .catch(function (err) { 
+                return console.error(err.toString());
+            });
         }
 
         function onDataChannelCreated(channel) {
@@ -249,18 +250,6 @@
 
             channel.onclose = function () {
                 console.log('Channel closed.');
-            }
-        }
-
-        /****************************************************************************
-         * Auxiliary functions
-         ****************************************************************************/
-        function logError(err) {
-            if (!err) return;
-            if (typeof err === 'string') {
-                console.warn(err);
-            } else {
-                console.warn(err.toString(), err);
             }
         }
 

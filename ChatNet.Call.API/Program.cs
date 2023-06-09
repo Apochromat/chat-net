@@ -80,14 +80,15 @@ var app = builder.Build();
 await app.MigrateDbAsync();
 
 app.UseCors();
+app.UseWebSockets();
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
 //app.UseHttpsRedirection();
 
-app.UseAuthentication();
 app.UseAuthorization();
+app.UseAuthentication();
 
 app.MapControllers();
 app.MapHub<CallHub>("api/call/hub");

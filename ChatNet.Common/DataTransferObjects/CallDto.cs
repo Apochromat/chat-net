@@ -35,4 +35,14 @@ public class CallDto {
     /// Time when the call was created
     /// </summary>
     public DateTime CreatedAt { get; set; }
+    
+    /// <summary>
+    /// Indicates if the caller is connected to the call
+    /// </summary>
+    public bool IsCallerConnected { get; set; }
+    
+    /// <summary>
+    /// Indicates if the receiver is connected to the call
+    /// </summary>
+    public bool IsReceiverConnected { get; set; }
 }

@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 
-namespace ChatNet.Common.Extensions; 
+namespace ChatNet.Common.Extensions;
 
 /// <summary>
 /// Extension for jwt authorisation
@@ -16,7 +16,8 @@ public static class JwtAuthenticationExtension {
     /// <param name="services"></param>
     /// <param name="configuration"></param>
     /// <returns></returns>
-    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services, IConfiguration configuration) {
+    public static IServiceCollection AddJwtAuthentication(this IServiceCollection services,
+        IConfiguration configuration) {
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options => {
                 options.TokenValidationParameters = new TokenValidationParameters {
@@ -28,6 +29,17 @@ public static class JwtAuthenticationExtension {
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.ASCII.GetBytes(configuration.GetSection("Jwt")["Secret"] ?? string.Empty)),
                     ValidateIssuerSigningKey = true,
+                };
+                options.Events = new JwtBearerEvents {
+                    OnMessageReceived = context => {
+                        var accessToken = context.Request.Query["access_token"];
+
+                        if (!string.IsNullOrEmpty(accessToken)) {
+                            context.Token = accessToken;
+                        }
+
+                        return Task.CompletedTask;
+                    }
                 };
             });
         return services;

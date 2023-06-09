@@ -1,9 +1,8 @@
-﻿using ChatNet.Common.DataTransferObjects;
-using ChatNet.Common.Interfaces;
+﻿using ChatNet.Common.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
-namespace ChatNet.Call.API.Hubs; 
+namespace ChatNet.Call.API.Hubs;
 
 /// <summary>
 /// Call hub
@@ -46,26 +45,22 @@ public class CallHub : Hub {
     /// </summary>
     /// <param name="stream"></param>
     public async Task SendMessage(object stream) {
-        await this.Clients.Others.SendAsync("message", stream);
+        await Clients.Others.SendAsync("message", stream);
     }
-    
+
     /// <summary>
     /// Join to call
     /// </summary>
     /// <param name="callId"></param>
     public async Task Join(string callId) {
+        var call = await _callService.GetCall(new Guid(Context.UserIdentifier), new Guid(callId));
         await Groups.AddToGroupAsync(Context.ConnectionId, callId);
-        await Clients.Caller.SendAsync("joined", callId);
-        await Clients.Group(callId).SendAsync("ready");
-    }
-    
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="receiverId"></param>
-    public async Task CallSomebody(string receiverId) {
-        var callId = await _callService.CallSomebody(new Guid(Context.UserIdentifier), new Guid(receiverId));
-        await Groups.AddToGroupAsync(Context.ConnectionId, callId.ToString());
-        await Clients.User(Context.UserIdentifier).SendAsync("created", callId);
+
+        await _callService.ConnectToCall(new Guid(callId), new Guid(Context.UserIdentifier));
+        await Clients.Caller.SendAsync(call.IsInitiator ? "joinedAsCaller" : "joinedAsReceiver", callId);
+
+        if (await _callService.IsReadyToStart(new Guid(callId))) {
+            await Clients.Group(callId).SendAsync("ready");
+        }
     }
 }

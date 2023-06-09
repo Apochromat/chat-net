@@ -12,6 +12,14 @@ public interface ICallService {
     /// <param name="userId"></param>
     /// <returns></returns>
     Task<List<CallDto>> GetCurrentCalls(Guid userId);
+
+    /// <summary>
+    /// Get call info
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="callId"></param>
+    /// <returns></returns>
+    Task<CallDto> GetCall(Guid userId, Guid callId);
     
     /// <summary>
     /// Call somebody
@@ -20,6 +28,29 @@ public interface ICallService {
     /// <param name="receiverId"></param>
     /// <returns></returns>
     Task<Guid> CallSomebody(Guid callerId, Guid receiverId);
+    
+    /// <summary>
+    /// Connect to call
+    /// </summary>
+    /// <param name="callId"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    Task ConnectToCall(Guid callId, Guid userId);
+    
+    /// <summary>
+    /// Disconnect from call
+    /// </summary>
+    /// <param name="callId"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    Task DisconnectFromCall(Guid callId, Guid userId);
+
+    /// <summary>
+    /// Check if everybody connected to call
+    /// </summary>
+    /// <param name="callId"></param>
+    /// <returns></returns>
+    Task<bool> IsReadyToStart(Guid callId);
     
     /// <summary>
     /// Accept call

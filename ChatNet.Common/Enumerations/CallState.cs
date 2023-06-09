@@ -9,6 +9,14 @@ public enum CallState {
     /// </summary>
     Created,
     /// <summary>
+    /// Set when the call is accepted by the receiver.
+    /// </summary>
+    Accepted,
+    /// <summary>
+    /// Set when the call is accepted by the receiver.
+    /// </summary>
+    Established,
+    /// <summary>
     /// Set when the call is rejected by receiver.
     /// </summary>
     Rejected,
@@ -16,10 +24,6 @@ public enum CallState {
     /// Set when the call is cancelled by the caller.
     /// </summary>
     Cancelled,
-    /// <summary>
-    /// Set when the call is accepted by the receiver.
-    /// </summary>
-    Established,
     /// <summary>
     /// Set when the call is ended by the caller or receiver.
     /// </summary>

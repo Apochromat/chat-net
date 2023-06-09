@@ -40,4 +40,14 @@ public class Call {
     /// Time when the call was ended/rejected/cancelled
     /// </summary>
     public DateTime? EndedAt { get; set; }
+    
+    /// <summary>
+    /// Indicates if the caller is connected to the call
+    /// </summary>
+    public bool IsCallerConnected { get; set; }
+    
+    /// <summary>
+    /// Indicates if the receiver is connected to the call
+    /// </summary>
+    public bool IsReceiverConnected { get; set; }
 }

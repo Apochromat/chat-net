@@ -24,7 +24,7 @@ public class CallService : ICallService {
         var calls = await _dbContext.Calls
             .Where(c => 
                 c.CallerId == userId || c.ReceiverId == userId
-                && (c.State == CallState.Created || c.State == CallState.Established))
+                && (c.State == CallState.Created || c.State == CallState.Accepted || c.State == CallState.Established))
             .Select(c => new CallDto {
                 Id = c.Id,
                 CallerId = c.CallerId,
@@ -36,6 +36,29 @@ public class CallService : ICallService {
             .ToListAsync();
         
         return calls;
+    }
+
+    /// <inheritdoc cref="ICallService.GetCall"/>
+    public async Task<CallDto> GetCall(Guid userId, Guid callId) {
+        var call = await _dbContext.Calls
+            .Where(c => 
+                c.CallerId == userId || c.ReceiverId == userId
+                && c.Id == callId)
+            .Select(c => new CallDto {
+                Id = c.Id,
+                CallerId = c.CallerId,
+                ReceiverId = c.ReceiverId,
+                State = c.State,
+                CreatedAt = c.CreatedAt,
+                IsInitiator = c.CallerId == userId
+            })
+            .FirstOrDefaultAsync();
+
+        if (call == null) {
+            throw new NotFoundException("Call not found");
+        }
+
+        return call;
     }
 
     /// <inheritdoc cref="ICallService.CallSomebody"/>
@@ -62,6 +85,59 @@ public class CallService : ICallService {
         return call.Id;
     }
 
+    /// <inheritdoc cref="ICallService.ConnectToCall"/>
+    public async Task ConnectToCall(Guid callId, Guid userId) {
+        var call = await _dbContext.Calls.FirstOrDefaultAsync(c => 
+            c.Id == callId 
+            && (c.ReceiverId == userId || c.CallerId == userId)
+            && c.State == CallState.Accepted);
+        if (call == null) {
+            throw new NotFoundException($"Call with id {callId} not found or you are not part of the call");
+        }
+
+        if (call.ReceiverId == userId) {
+            call.IsReceiverConnected = true;
+        }
+        else {
+            call.IsCallerConnected = true;
+        }
+        
+        if (call is { IsReceiverConnected: true, IsCallerConnected: true }) {
+            call.State = CallState.Established;
+            await _dbContext.SaveChangesAsync();
+        }
+        
+        await _dbContext.SaveChangesAsync();
+    }
+
+    /// <inheritdoc cref="ICallService.DisconnectFromCall"/>
+    public async Task DisconnectFromCall(Guid callId, Guid userId) {
+        var call = await _dbContext.Calls.FirstOrDefaultAsync(c => 
+            c.Id == callId 
+            && (c.ReceiverId == userId || c.CallerId == userId));
+        if (call == null) {
+            throw new NotFoundException($"Call with id {callId} not found or you are not part of the call");
+        }
+        
+        call.IsReceiverConnected = false;
+        call.IsCallerConnected = false;
+
+        call.EndedAt = DateTime.UtcNow;
+        call.State = CallState.Ended;
+        await _dbContext.SaveChangesAsync();
+    }
+
+    /// <inheritdoc cref="ICallService.IsReadyToStart"/>
+    public async Task<bool> IsReadyToStart(Guid callId) {
+        var call = await _dbContext.Calls.FirstOrDefaultAsync(c => 
+            c.Id == callId);
+        if (call == null) {
+            throw new NotFoundException($"Call with id {callId} not found or you are not part of the call");
+        }
+
+        return call.State == CallState.Established;
+    }
+
     /// <inheritdoc cref="ICallService.AcceptCall"/>
     public async Task AcceptCall(Guid callId, Guid userId) {
         var call = await _dbContext.Calls.FirstOrDefaultAsync(c => 
@@ -69,10 +145,10 @@ public class CallService : ICallService {
             && c.ReceiverId == userId
             && c.State == CallState.Created);
         if (call == null) {
-            throw new NotFoundException($"Call with id {callId} not or you are not receiver of the call");
+            throw new NotFoundException($"Call with id {callId} not found or you are not receiver of the call");
         }
         
-        call.State = CallState.Established;
+        call.State = CallState.Accepted;
         call.StartedAt = DateTime.UtcNow;
         await _dbContext.SaveChangesAsync();
     }
@@ -84,7 +160,7 @@ public class CallService : ICallService {
             && c.ReceiverId == userId
             && c.State == CallState.Created);
         if (call == null) {
-            throw new NotFoundException($"Call with id {callId} not or you are not receiver of the call");
+            throw new NotFoundException($"Call with id {callId} not found or you are not receiver of the call");
         }
         
         call.State = CallState.Rejected;
@@ -99,7 +175,7 @@ public class CallService : ICallService {
             && (c.CallerId == userId || c.ReceiverId == userId)
             && c.State == CallState.Established);
         if (call == null) {
-            throw new NotFoundException($"Call with id {callId} not or you are not part of the call");
+            throw new NotFoundException($"Call with id {callId} not found or you are not part of the call");
         }
         
         call.State = CallState.Ended;
@@ -114,7 +190,7 @@ public class CallService : ICallService {
             && c.CallerId == userId
             && c.State == CallState.Created);
         if (call == null) {
-            throw new NotFoundException($"Call with id {callId} not or you are not caller of the call");
+            throw new NotFoundException($"Call with id {callId} not found or you are not caller of the call");
         }
         
         call.State = CallState.Cancelled;
