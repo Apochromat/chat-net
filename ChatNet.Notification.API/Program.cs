@@ -84,6 +84,7 @@ await app.MigrateDbAsync();
 await app.CloseOpenedConnectionsAsync();
 
 app.UseCors();
+app.UseWebSockets();
 
 app.UseSwagger();
 app.UseSwaggerUI();
