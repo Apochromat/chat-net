@@ -39,6 +39,19 @@
       "Priority": 0
     },
     {
+      "DownstreamPathTemplate": "/api/account/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "auth",
+          "Port": 80
+        }
+      ],
+      "UpstreamPathTemplate": "/api/account/{everything}",
+      "SwaggerKey": "auth",
+      "Priority": 0
+    },
+    {
       "DownstreamPathTemplate": "/api/backend/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
