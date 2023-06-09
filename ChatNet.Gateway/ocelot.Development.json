@@ -39,6 +39,18 @@
       "Priority": 0
     },
     {
+      "DownstreamPathTemplate": "/api/account/",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5021
+        }
+      ],
+      "UpstreamPathTemplate": "/api/account/",
+      "SwaggerKey": "auth"
+    },
+    {
       "DownstreamPathTemplate": "/api/account/{everything}",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
