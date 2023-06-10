@@ -71,7 +71,6 @@ public class ChatService: IChatService {
         var chatMessages = await _dbContext.Chats
             .Where(c => c.Id == chatId)
             .SelectMany(c => c.Messages
-                .OrderByDescending(m => m.CreatedTime)
                 .Select(m => new MessageDto {
                     Id = m.Id,
                     SenderId = m.User.Id,
@@ -95,15 +94,20 @@ public class ChatService: IChatService {
         }
 
         return new Pagination<MessageDto>(chatMessages
+            .OrderByDescending(m => m.CreatedTime)
             .Skip((page - 1) * pageSize)
             .Take(pageSize).ToList(), page, pageSize, pagesAmount);
     }
     public async Task<ChatFullDto> GetChatDetails(Guid chatId) {
         var chat = await _dbContext.Chats
-            .Include(c=>c.FileIds)
+                
             .Include(c => c.Users)
             .FirstOrDefaultAsync(c => c.Id == chatId);
         if (chat == null) throw new NotFoundException("Chat with this id not found");
+        var chatAdmins = await _dbContext.GroupChats
+            .Where(c => c.Id == chatId)
+            .SelectMany(c => c.Administrators.Select(a=>a.Id))
+            .ToListAsync();
         var response = new ChatFullDto {
             Id = chat.Id,
             ChatName = chat.ChatName,
@@ -111,6 +115,7 @@ public class ChatService: IChatService {
             CreatedTime = chat.CreatedTime,
             DeletedTime = chat.DeletedTime,
             FileIds = chat.FileIds,
+            Administrators = chatAdmins,
             Users = chat.Users.Select(u => u.Id).ToList()
         };
         return response;
@@ -118,6 +123,8 @@ public class ChatService: IChatService {
     
     public async Task LeavePrivateChat(Guid userId, Guid chatId) {
         var user = await _dbContext.Users
+            .Include(u=>u.ChatsNotificationPreferences)
+            .ThenInclude(p=>p.PreferencedChat)
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) throw new NotFoundException("User with this id not found");
         
@@ -125,6 +132,10 @@ public class ChatService: IChatService {
             .FirstOrDefaultAsync(c => c.Id == chatId);
         if (chat == null) throw new NotFoundException("Chat with this id not found");
         user.Chats.Remove(chat);
+        var userPreference = user.ChatsNotificationPreferences
+            .FirstOrDefault(n => n.PreferencedChat == chat);
+        if (userPreference != null)
+            user.ChatsNotificationPreferences.Remove(userPreference);
         await _dbContext.SaveChangesAsync();
         var fileIds = chat.FileIds;
         if (chat.ChatAvatarId is not null) 
@@ -136,6 +147,8 @@ public class ChatService: IChatService {
     }
     public async Task LeaveGroupChat(Guid userId, Guid chatId) {
         var user = await _dbContext.Users
+            .Include(u=>u.ChatsNotificationPreferences)
+            .ThenInclude(p=>p.PreferencedChat)
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) throw new NotFoundException("User with this id not found");
         
@@ -145,6 +158,12 @@ public class ChatService: IChatService {
         if (chat.Administrators.Count <= 1 && chat.Administrators.Contains(user))
             throw new MethodNotAllowedException("User can not leave the chat while he is the only admin");
         user.Chats.Remove(chat);
+        if (chat.Administrators.Contains(user))
+            chat.Administrators.Remove(user);
+        var userPreference = user.ChatsNotificationPreferences
+            .FirstOrDefault(n => n.PreferencedChat == chat);
+        if (userPreference != null)
+            user.ChatsNotificationPreferences.Remove(userPreference);
         await _dbContext.SaveChangesAsync(); 
         var fileIds = chat.FileIds;
         if (chat.ChatAvatarId is not null) 
@@ -274,7 +293,7 @@ public class ChatService: IChatService {
                 && c.Id == chatId);
         var admin = await _dbContext.Users
             .Include(u=>u.Friends)
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .FirstOrDefaultAsync(u => u.Id == adminId);
         if (admin != null && !admin.Friends.Contains(user))
             throw new MethodNotAllowedException("User with this id is not your friend");
         if (chat == null) 
@@ -333,23 +352,24 @@ public class ChatService: IChatService {
 
     public async Task EditChat(ChatEditDto model, Guid chatId) {
         var chat = await _dbContext.Chats
-            .FirstOrDefaultAsync(c => 
+            .FirstOrDefaultAsync(c =>
                 !c.DeletedTime.HasValue
                 && c.Id == chatId);
         if (chat == null) throw new NotFoundException("Chat with this id not found");
-        chat.ChatAvatarId = model.AvatarId;
+        chat.ChatAvatarId = model.AvatarId == Guid.Empty ? null : model.AvatarId;
         chat.ChatName = model.ChatName;
         await _dbContext.SaveChangesAsync();
-        
+
         var fileIds = chat.FileIds;
-        if (chat.ChatAvatarId is not null) 
+        if (chat.ChatAvatarId is not null && chat.ChatAvatarId != Guid.Empty) {
             fileIds.Add(chat.ChatAvatarId.Value);
-        await _filesQueueService.SetViewersAsync(new FilesViewersDto {
+            await _filesQueueService.SetViewersAsync(new FilesViewersDto {
             Files = fileIds,
             Viewers = chat.Users.Select(u => u.Id).ToList()
-        });
-        
-    }
+        }); 
+        }
+
+}
 
     public async Task DeleteGroupChat(Guid chatId , Guid adminId) {
         var admin = await _dbContext.Users
@@ -357,17 +377,16 @@ public class ChatService: IChatService {
         if (admin == null) throw new NotFoundException("User with this id not found");
         var chat = await _dbContext.GroupChats
             .Include(c=>c.Users)
+            .ThenInclude(u=>u.ChatsNotificationPreferences)
+            .ThenInclude(p=>p.PreferencedChat)
             .FirstOrDefaultAsync(c => 
                 !c.DeletedTime.HasValue
                 && c.Id == chatId);
         if (chat == null) throw new NotFoundException("Group chat with this id not found");
         chat.DeletedTime = DateTime.UtcNow;
-        var preferences = chat.Users.Select(user =>
-            new NotificationPreferences {
-                PreferencedChat = chat,
-                User = user,
-                PreferenceType = NotificationPreferenceType.All
-            });
+        var preferences = chat.Users
+            .SelectMany(user => user.ChatsNotificationPreferences
+                .Where(p=>p.PreferencedChat == chat));
          _dbContext.RemoveRange(preferences);
         await _dbContext.SaveChangesAsync();
     }
@@ -416,5 +435,33 @@ public class ChatService: IChatService {
             });
         }
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<NotificationPreferenceType> GetNotificationPreference(Guid chatId, Guid userId) {
+        var chat = await _dbContext.Chats
+            .FirstOrDefaultAsync(c => 
+                !c.DeletedTime.HasValue
+                && c.Id == chatId);
+        if (chat == null) 
+            throw new NotFoundException("Chat with this id not found");
+        var user = await _dbContext.Users
+            .Include(u=>u.ChatsNotificationPreferences)
+            .ThenInclude(p=>p.PreferencedChat)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) 
+            throw new NotFoundException("User with this id not found");
+        var preference = user.ChatsNotificationPreferences
+            .FirstOrDefault(p => p.PreferencedChat == chat);
+        if (preference != null)
+            return preference.PreferenceType;
+        else {
+            await _dbContext.AddAsync(new NotificationPreferences {
+                PreferencedChat = chat,
+                User = user,
+                PreferenceType = NotificationPreferenceType.All
+            });
+            await _dbContext.SaveChangesAsync();
+            return NotificationPreferenceType.All;
+        }
     }
 }

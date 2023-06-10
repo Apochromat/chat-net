@@ -23,7 +23,7 @@ public class MessageService: IMessageService {
             .Include(u=>u.ChatsNotificationPreferences)
             .FirstOrDefaultAsync(u => u.Id == senderId);
         if (user == null) throw new NotFoundException("User with this id does not found");
-        var chat = await _dbContext.PrivateChats
+        var chat = await _dbContext.Chats
             .Include(c=>c.Users)
             .FirstOrDefaultAsync(c => c.Id == chatId);
         if (chat == null) throw new NotFoundException("Chat with this id not found");

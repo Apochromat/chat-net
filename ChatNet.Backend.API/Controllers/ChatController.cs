@@ -144,6 +144,23 @@ public class ChatController : ControllerBase {
     }
     
     /// <summary>
+    /// Get user's notification preference
+    /// </summary>
+    /// <param name="chatId"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpGet]
+    [Route("chat/{chatId}/notification-preference")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult<NotificationPreferenceType>> GetNotificationPreference( Guid chatId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        await _permissionCheckService.CheckUserHasAccessToChat(userId, chatId);
+        return Ok(await _chatService.GetNotificationPreference(chatId, userId));
+    }
+    
+    /// <summary>
     /// change user's notification preference type 
     /// </summary>
     /// <param name="preferenceType"></param>
@@ -172,7 +189,7 @@ public class ChatController : ControllerBase {
     [HttpDelete]
     [Route("chat/group/{chatId}")]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    public async Task<ActionResult> DeleteChat([FromBody] ChatEditDto model, Guid chatId) {
+    public async Task<ActionResult> DeleteChat(Guid chatId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }

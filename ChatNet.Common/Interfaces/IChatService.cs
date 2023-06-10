@@ -103,4 +103,12 @@ public interface IChatService {
     /// <param name="preferenceType"></param>
     /// <returns></returns>
     public Task EditNotificationsPreference(Guid chatId, Guid userId, NotificationPreferenceType preferenceType);
+
+    /// <summary>
+    /// Get preference
+    /// </summary>
+    /// <param name="chatId"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public Task<NotificationPreferenceType> GetNotificationPreference(Guid chatId, Guid userId);
 }
