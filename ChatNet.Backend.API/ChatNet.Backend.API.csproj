@@ -4,16 +4,17 @@
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+   <!-- <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <DocumentationFile>bin\Debug\ChatNet.Backend.API.xml</DocumentationFile>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <DocumentationFile>bin\Release\ChatNet.Backend.API.xml</DocumentationFile>
-    </PropertyGroup>
+    </PropertyGroup>-->
 
     <ItemGroup>
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
