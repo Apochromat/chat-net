@@ -14,6 +14,10 @@ public class User : IdentityUser<Guid> {
     /// User`s birth date
     /// </summary>
     public DateTime BirthDate { get; set; }
+    /// <summary>
+    /// Photo id
+    /// </summary>
+    public Guid PhotoId { get; set; }
 
     /// <summary>
     /// Date when user joined the system

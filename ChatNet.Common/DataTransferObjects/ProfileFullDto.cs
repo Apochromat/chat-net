@@ -27,11 +27,6 @@ public class ProfileFullDto {
     /// User`s phone number
     /// </summary>
     public required string PhoneNumber { get; set; }
-    
-    /// <summary>
-    /// Is user banned
-    /// </summary>
-    public Boolean IsBanned { get; set; }
 
     /// <summary>
     /// Date when user joined the system

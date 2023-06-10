@@ -12,6 +12,12 @@ public class ProfileEditDto {
     /// </summary>
     [Required]
     public required string FullName { get; set; }
+    
+    /// <summary>
+    /// User's avatar id 
+    /// </summary>
+    [Required]
+    public Guid PhotoId { get; set; }
 
     /// <summary>
     /// User`s birth date

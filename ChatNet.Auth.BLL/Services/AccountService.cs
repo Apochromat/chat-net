@@ -32,9 +32,7 @@ public class AccountService: IAccountService {
             FullName = user.FullName,
             BirthDate = user.BirthDate,
             JoinedAt = user.JoinedAt,
-            //TODO 
-            //PhotoId = 
-            IsBanned = await _userManager.IsLockedOutAsync(user)
+            PhotoId = user.PhotoId
         };
         return profile;
     }
@@ -48,6 +46,7 @@ public class AccountService: IAccountService {
 
         user.FullName = accountProfileEditDto.FullName;
         user.BirthDate = accountProfileEditDto.BirthDate;
+        user.PhotoId = accountProfileEditDto.PhotoId;
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded) {
@@ -62,7 +61,7 @@ public class AccountService: IAccountService {
             throw new NotFoundException("User not found");
         }
         var profile = new ProfileShortDto {
-            PhotoId = Guid.NewGuid(),
+            PhotoId = user.PhotoId,
             FullName = user.FullName
         };
         return profile;    
