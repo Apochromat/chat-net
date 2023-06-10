@@ -1,10 +1,10 @@
+using ChatNet.Auth.DAL;
 using ChatNet.Auth.DAL.Entities;
 using ChatNet.Common.DataTransferObjects;
 using ChatNet.Common.Exceptions;
 using ChatNet.Common.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace ChatNet.Auth.BLL.Services; 
 
