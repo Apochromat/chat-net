@@ -158,6 +158,7 @@ public class ChatService: IChatService {
 
     public async Task CreatePrivateChat(ChatPrivateCreateDto chatModel , Guid creatorId) {
         var creator = await _dbContext.Users
+            .Include(u=>u.Friends)
             .FirstOrDefaultAsync(u => u.Id == creatorId);
         if (creator == null) 
             throw new NotFoundException("Creator with this id not found");
@@ -165,7 +166,8 @@ public class ChatService: IChatService {
             .FirstOrDefaultAsync(u => u.Id == chatModel.UserId);
         if (user == null) 
             throw new NotFoundException("Creator with this id not found");
-        
+        if (!creator.Friends.Contains(user))
+            throw new MethodNotAllowedException("User must be your friend to  create chat");
         var chat = new PrivateChat {
             ChatAvatarId = chatModel.AvatarId,
             ChatName = chatModel.ChatName,
@@ -209,6 +211,7 @@ public class ChatService: IChatService {
 
     public async Task CreateGroupChat(ChatCreateDto chatModel, Guid creatorId) {
         var admin = await _dbContext.Users
+            .Include(u=>u.Friends)
             .FirstOrDefaultAsync(u => u.Id == creatorId);
         if (admin == null) 
             throw new NotFoundException("Creator with this id not found");
@@ -218,6 +221,8 @@ public class ChatService: IChatService {
             .ToListAsync();
         if (users == null || users.Count < 1 )
             throw new BadRequestException("Group chat can exist only with more than 1 user");
+        if (users.Any(u => !admin.Friends.Contains(u)))
+            throw new MethodNotAllowedException("Users must be your friends");
         var chat = new GroupChat {
             ChatAvatarId = chatModel.AvatarId,
             ChatName = chatModel.ChatName,

@@ -52,7 +52,7 @@ namespace ChatNet.Backend.DAL.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Chats");
+                    b.ToTable("Chats", (string)null);
 
                     b.HasDiscriminator<string>("Discriminator").HasValue("Chat");
 
@@ -77,7 +77,7 @@ namespace ChatNet.Backend.DAL.Migrations
 
                     b.HasIndex("RequestToId");
 
-                    b.ToTable("FriendShipRequests");
+                    b.ToTable("FriendShipRequests", (string)null);
                 });
 
             modelBuilder.Entity("ChatNet.Backend.DAL.Entities.Message", b =>
@@ -119,7 +119,7 @@ namespace ChatNet.Backend.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Messages");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("ChatNet.Backend.DAL.Entities.NotificationPreferences", b =>
@@ -143,7 +143,7 @@ namespace ChatNet.Backend.DAL.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("NotificationPreferences");
+                    b.ToTable("NotificationPreferences", (string)null);
                 });
 
             modelBuilder.Entity("ChatNet.Backend.DAL.Entities.Reaction", b =>
@@ -162,7 +162,7 @@ namespace ChatNet.Backend.DAL.Migrations
 
                     b.HasIndex("ReactedMessageId");
 
-                    b.ToTable("Reactions");
+                    b.ToTable("Reactions", (string)null);
                 });
 
             modelBuilder.Entity("ChatNet.Backend.DAL.Entities.UserBackend", b =>
@@ -178,7 +178,7 @@ namespace ChatNet.Backend.DAL.Migrations
 
                     b.HasIndex("GroupChatId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("ChatUserBackend", b =>
@@ -193,7 +193,7 @@ namespace ChatNet.Backend.DAL.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("ChatUserBackend");
+                    b.ToTable("ChatUserBackend", (string)null);
                 });
 
             modelBuilder.Entity("ReactionUserBackend", b =>
@@ -208,7 +208,7 @@ namespace ChatNet.Backend.DAL.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("ReactionUserBackend");
+                    b.ToTable("ReactionUserBackend", (string)null);
                 });
 
             modelBuilder.Entity("UserBackendUserBackend", b =>
@@ -223,7 +223,7 @@ namespace ChatNet.Backend.DAL.Migrations
 
                     b.HasIndex("UsersId");
 
-                    b.ToTable("UserBackendUserBackend");
+                    b.ToTable("UserBackendUserBackend", (string)null);
                 });
 
             modelBuilder.Entity("ChatNet.Backend.DAL.Entities.GroupChat", b =>

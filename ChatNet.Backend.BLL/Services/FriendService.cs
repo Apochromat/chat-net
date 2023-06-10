@@ -23,7 +23,8 @@ public class FriendService:IFriendService {
         if (user == null) 
             throw new NotFoundException("User with this id does not found");
         var friend = await _dbContext.Users
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .Include(u=>u.Friends)
+            .FirstOrDefaultAsync(u => u.Id == friendId);
         if (friend == null) 
             throw new NotFoundException("User with this id does not found");
         var friendship = await _dbContext.FriendShipRequests
@@ -32,10 +33,11 @@ public class FriendService:IFriendService {
             .FirstOrDefaultAsync(u =>
                 u.RequestFrom == friend && u.RequestTo == user);
         if (friendship == null) 
-            throw new NotFoundException("Request with this id does not found");
+            throw new NotFoundException("Friendship request not found");
         if (friendship.RequestTo != user)
             throw new MethodNotAllowedException("You can not accept this request");
         user.Friends.Add(friendship.RequestFrom);
+        friend.Friends.Add(friendship.RequestTo);
         _dbContext.Remove(friendship);
         await _dbContext.SaveChangesAsync();
         await _notificationQueueService.SendOnlinePreferenceAsync(new OnlinePreferenceFriendsDto {
@@ -58,7 +60,7 @@ public class FriendService:IFriendService {
         if (user == null) 
             throw new NotFoundException("User with this id does not found");
         var friend = await _dbContext.Users
-            .FirstOrDefaultAsync(u => u.Id == userId);
+            .FirstOrDefaultAsync(u => u.Id == friendId);
         if (friend == null) 
             throw new NotFoundException("User with this id does not found");
         var friendship = await _dbContext.FriendShipRequests
@@ -68,7 +70,7 @@ public class FriendService:IFriendService {
                 u.RequestFrom == user && u.RequestTo == friend
                 || u.RequestFrom == friend && u.RequestTo == user);
         if (friendship == null) 
-            throw new NotFoundException("Request with this id does not found");
+            throw new NotFoundException("You don't have this friendship request");
         if (friendship.RequestTo != user && friendship.RequestFrom != user)
             throw new MethodNotAllowedException("You can not reject this request");
         _dbContext.Remove(friendship);
@@ -186,12 +188,14 @@ public class FriendService:IFriendService {
         if (user == null) 
             throw new NotFoundException("User with this id does not found");
         var friend = await _dbContext.Users
+            .Include(u=>u.Friends)
             .FirstOrDefaultAsync(u => u.Id == friendId);
         if (friend == null) 
             throw new NotFoundException("Friend with this id does not found");
         if (!user.Friends.Contains(friend))
             throw new ConflictException("He is not your friend");
         user.Friends.Remove(friend);
+        friend.Friends.Remove(user);
         await _dbContext.SaveChangesAsync();
         await _notificationQueueService.SendOnlinePreferenceAsync(new OnlinePreferenceFriendsDto {
             UserId = user.Id,
