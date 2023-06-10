@@ -59,4 +59,20 @@ public class AccountController : ControllerBase{
     public async Task<ActionResult<ProfileShortDto>> GetCurrentProfile(Guid userId) {
         return Ok(await _accountService.GetShortProfileAsync(userId));
     }
+
+    /// <summary>
+    /// Search users for adding to friends
+    /// </summary>
+    /// <param name="fullname"></param>
+    /// <param name="page"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
+    [HttpGet]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    [Route("users")]
+    public async Task<ActionResult<ProfileShortDto>> GetUsers([FromQuery] string? fullname, 
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 15) {
+        return Ok(await _accountService.SearchUsersAsync(fullname, page, pageSize));
+    }
 }

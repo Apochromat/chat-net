@@ -7,11 +7,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\ChatNet.Common\ChatNet.Common.csproj" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
+      <PackageReference Include="RabbitMQ.Client" Version="6.5.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="RabbitMQ.Client" Version="6.5.0" />
+      <ProjectReference Include="..\ChatNet.Backend.DAL\ChatNet.Backend.DAL.csproj" />
+      <ProjectReference Include="..\ChatNet.Common\ChatNet.Common.csproj" />
     </ItemGroup>
 
 </Project>

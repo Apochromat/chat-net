@@ -3,6 +3,8 @@ using ChatNet.Common.DataTransferObjects;
 using ChatNet.Common.Exceptions;
 using ChatNet.Common.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ChatNet.Auth.BLL.Services; 
 
@@ -10,13 +12,16 @@ namespace ChatNet.Auth.BLL.Services;
 public class AccountService: IAccountService {
     
     private readonly UserManager<User> _userManager;
+    private readonly AuthDbContext _authDb;
 
     /// <summary>
     /// Constructor
     /// </summary>
     /// <param name="userManager"></param>
-    public AccountService(UserManager<User> userManager) {
+    /// <param name="authDb"></param>
+    public AccountService(UserManager<User> userManager, AuthDbContext authDb) {
         _userManager = userManager;
+        _authDb = authDb;
     }
     
     /// <inheritdoc cref="IAccountService.GetProfileAsync"/>
@@ -61,9 +66,47 @@ public class AccountService: IAccountService {
             throw new NotFoundException("User not found");
         }
         var profile = new ProfileShortDto {
+            Id = user.Id,
             PhotoId = user.PhotoId,
             FullName = user.FullName
         };
         return profile;    
+    }
+
+    /// <summary>
+    /// Search
+    /// </summary>
+    /// <param name="searchString"></param>
+    /// <param name="page"></param>
+    /// <param name="pageSize"></param>
+    /// <returns></returns>
+    public async Task<Pagination<ProfileShortDto>> SearchUsersAsync(string? searchString, int page , int pageSize) {
+        if (page < 1) {
+            throw new ArgumentException("Page must be greater than 0");
+        }
+
+        if (pageSize < 1) {
+            throw new ArgumentException("Page size must be greater than 0");
+        }
+        var users = await _authDb.Users
+            .Where(u =>
+                searchString == null || u.FullName.Contains(searchString))
+            .OrderBy(u=>u.FullName)
+            .Select(u => new ProfileShortDto {
+                Id = u.Id,
+                PhotoId = u.Id,
+                FullName = u.FullName
+            })
+            .ToListAsync();
+        var pagesAmount = (int)Math.Ceiling((double)users.Count / pageSize);
+            
+        if (page > pagesAmount) {
+            throw new NotFoundException("Page not found");
+        }
+
+        return new Pagination<ProfileShortDto>(users
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize).ToList(), 
+            page, pageSize, pagesAmount);
     }
 }

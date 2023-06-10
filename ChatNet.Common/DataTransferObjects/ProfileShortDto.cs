@@ -3,6 +3,10 @@ namespace ChatNet.Common.DataTransferObjects;
 /// Short profile DTO
 /// </summary>
 public class ProfileShortDto {
+ /// <summary>
+ /// Id
+ /// </summary>
+ public Guid Id { get; set; }
  
  /// <summary>
  /// Photo Identifier
