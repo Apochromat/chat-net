@@ -60,6 +60,7 @@ services:
     restart: always
     environment:
       - RABBITMQ__HOSTNAME=rabbitmq
+      - CONNECTIONSTRINGS__BACKENDDATABASE=User ID=postgres;Password=postgres;Host=postgres;Port=5432;Database=chat-backend-db
     networks:
       - internal-network
     depends_on:
