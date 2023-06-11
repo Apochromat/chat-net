@@ -73,6 +73,9 @@ public class AccountController : ControllerBase{
     public async Task<ActionResult<ProfileShortDto>> GetUsers([FromQuery] string? fullname, 
         [FromQuery] int page = 1, 
         [FromQuery] int pageSize = 15) {
-        return Ok(await _accountService.SearchUsersAsync(fullname, page, pageSize));
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        return Ok(await _accountService.SearchUsersAsync(userId, fullname, page, pageSize));
     }
 }

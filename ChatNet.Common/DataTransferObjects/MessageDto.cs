@@ -8,6 +8,6 @@ public class MessageDto {
     public DateTime? EditedTime { get; set; }
     public List<Guid> FileIds { get; set; } = new List<Guid>();
     public List<ReactionDto> MessageReactions { get; set; } = new List<ReactionDto>();
-    public List<Guid> ViewedBy { get; set; } = new List<Guid>();
+    public bool IsViewed { get; set; }
 
 }

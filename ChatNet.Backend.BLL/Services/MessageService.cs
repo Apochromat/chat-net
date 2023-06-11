@@ -107,8 +107,8 @@ public class MessageService: IMessageService {
             .Where(m => messagesIds.Contains(m.Id)
                         && !m.DeletedTime.HasValue
             ).ToListAsync();
-        if (messagesDb == null) 
-            throw new NotFoundException("Messages not found found");
+        if (messagesDb == null || !messagesDb.Any()) 
+            throw new NotFoundException("Messages not found");
         if (messagesDb.Any(m =>m.ViewedBy.Contains(user.Id)))
             throw new ConflictException("You already viewed this message");
         messagesDb.ForEach(m=>m.ViewedBy.Add(user.Id));

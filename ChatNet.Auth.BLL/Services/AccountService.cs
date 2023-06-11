@@ -76,11 +76,12 @@ public class AccountService: IAccountService {
     /// <summary>
     /// Search
     /// </summary>
+    /// <param name="userId"></param>
     /// <param name="searchString"></param>
     /// <param name="page"></param>
     /// <param name="pageSize"></param>
     /// <returns></returns>
-    public async Task<Pagination<ProfileShortDto>> SearchUsersAsync(string? searchString, int page , int pageSize) {
+    public async Task<Pagination<ProfileShortDto>> SearchUsersAsync(Guid userId, string? searchString, int page , int pageSize) {
         if (page < 1) {
             throw new ArgumentException("Page must be greater than 0");
         }
@@ -89,12 +90,13 @@ public class AccountService: IAccountService {
             throw new ArgumentException("Page size must be greater than 0");
         }
         var users = await _authDb.Users
-            .Where(u =>
-                searchString == null || u.FullName.Contains(searchString))
+            .Where(u => u.Id != userId
+                && (searchString == null 
+                || u.FullName.Contains(searchString)))
             .OrderBy(u=>u.FullName)
             .Select(u => new ProfileShortDto {
                 Id = u.Id,
-                PhotoId = u.Id,
+                PhotoId = u.PhotoId,
                 FullName = u.FullName
             })
             .ToListAsync();

@@ -34,27 +34,43 @@ public class ChatService: IChatService {
         var chats = await _dbContext.Chats
             .Where(c => c.Users
                 .Contains(user))
+            .Include(c=>c.Messages)
+            .ThenInclude(u=>u.User)
             .OrderBy(c => c.Messages.Max(m=>m.CreatedTime))
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
         
-        var pagesAmount = (int)Math.Ceiling((double)chats.Count / pageSize);
+        var pagesAmount = (int)Math.Ceiling((double)await _dbContext.Chats
+            .CountAsync(c => c.Users
+                .Contains(user))/ pageSize);
             
         if (page > pagesAmount) {
             throw new NotFoundException("Page not found");
         }
+
         return new ChatListDto {
             UserChats = new Pagination<ChatShortDto>(chats
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize).ToList()
                 .Select(c => new ChatShortDto {
                 Id = c.Id,
                 ChatAvatarId = c.ChatAvatarId,
                 ChatName = c.ChatName,
-                DeletedTime = c.DeletedTime //?? null
-            }).ToList(),page, pageSize, pagesAmount)
+                DeletedTime = c.DeletedTime,
+                LastMessage = c.Messages.Count!=0 ? new MessageShortDto {
+                    Id = c.Messages.MaxBy(m=>m.CreatedTime).Id ,
+                    SenderId = c.Messages.MaxBy(m=>m.CreatedTime).User.Id,
+                    TextMessage = c.Messages.MaxBy(m=>m.CreatedTime).TextMessage,
+                    CreatedTime = c.Messages.MaxBy(m=>m.CreatedTime).CreatedTime
+                } : null,
+                UnviewedMessages = c.Messages
+                    .Count(m => !m.DeletedTime.HasValue 
+                        && m.User != user 
+                        && !m.ViewedBy
+                        .Contains(user.Id))
+                }).ToList(),page, pageSize, pagesAmount)
         };
     }
-    public async Task<Pagination<MessageDto>> GetMessages(Guid chatId, int page, int pageSize) {
+    public async Task<Pagination<MessageDto>> GetMessages(Guid chatId, int page, int pageSize , Guid userId) {
         if (page < 1) {
             throw new ArgumentException("Page must be greater than 0");
         }
@@ -62,7 +78,10 @@ public class ChatService: IChatService {
         if (pageSize < 1) {
             throw new ArgumentException("Page size must be greater than 0");
         }
-
+        var user = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) 
+            throw new NotFoundException("User with this id not found");
         var chat = await _dbContext.Chats
             .FirstOrDefaultAsync(c => c.Id == chatId);
         if (chat == null)
@@ -71,6 +90,7 @@ public class ChatService: IChatService {
         var chatMessages = await _dbContext.Chats
             .Where(c => c.Id == chatId)
             .SelectMany(c => c.Messages
+                .Where(m=> !m.DeletedTime.HasValue)
                 .Select(m => new MessageDto {
                     Id = m.Id,
                     SenderId = m.User.Id,
@@ -83,7 +103,7 @@ public class ChatService: IChatService {
                         Users = r.Users.Select(u=>u.Id).ToList(),
                         ReactionType = r.ReactionType
                     }).ToList(),
-                    ViewedBy = m.ViewedBy
+                    IsViewed = m.ViewedBy.Contains(user.Id) || m.User == user
                 })
             ).ToListAsync();
         

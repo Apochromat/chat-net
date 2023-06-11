@@ -66,7 +66,7 @@ public class ChatController : ControllerBase {
         }
 
         await _permissionCheckService.CheckUserHasAccessToChat(userId, chatId);
-        return Ok(await _chatService.GetMessages(chatId, page, pageSize));
+        return Ok(await _chatService.GetMessages(chatId, page, pageSize, userId));
     }
     
     /// <summary>
