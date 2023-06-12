@@ -72,6 +72,28 @@ public class AccountService: IAccountService {
         };
         return profile;    
     }
+    
+    /// <summary>
+    /// Get users
+    /// </summary>
+    /// <param name="userIds"></param>
+    /// <param name="searchString"></param>
+    /// <returns></returns>
+    public async Task<List<ProfileShortDto>> GetUsersByList(List<Guid> userIds, string? searchString) {
+        var users = await _userManager.Users
+            .Where(u =>
+                (searchString == null || u.FullName.Contains(searchString))
+                && userIds.Contains(u.Id))
+            .Select(u=> new ProfileShortDto {
+                Id = u.Id,
+                PhotoId = u.PhotoId,
+                FullName = u.FullName
+            })
+            .OrderBy(u=>u.FullName)
+            .ToListAsync();
+       
+        return users;    
+    }
 
     /// <summary>
     /// Search

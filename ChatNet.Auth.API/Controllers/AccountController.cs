@@ -78,4 +78,23 @@ public class AccountController : ControllerBase{
         }
         return Ok(await _accountService.SearchUsersAsync(userId, fullname, page, pageSize));
     }
+    
+    /// <summary>
+    /// Get information about user's 
+    /// </summary>
+    /// <param name="userIds"></param>
+    /// <param name="fullname"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpGet]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    [Route("userList")]
+    public async Task<ActionResult<ProfileShortDto>> GetUsersByIds([FromQuery] List<Guid> userIds,
+        [FromQuery] string? fullname
+    ) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        return Ok(await _accountService.GetUsersByList(userIds, fullname));
+    }
 }

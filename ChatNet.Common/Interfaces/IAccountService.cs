@@ -37,4 +37,12 @@ public interface IAccountService{
     /// <param name="pageSize"></param>
     /// <returns></returns>
     public Task<Pagination<ProfileShortDto>> SearchUsersAsync(Guid userId, string? searchString, int page , int pageSize);
+
+    /// <summary>
+    /// Get users by ids
+    /// </summary>
+    /// <param name="userIds"></param>
+    /// <param name="searchString"></param>
+    /// <returns></returns>
+    public Task<List<ProfileShortDto>> GetUsersByList(List<Guid> userIds, string? searchString);
 }

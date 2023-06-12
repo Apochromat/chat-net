@@ -13,8 +13,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ChatNet.Backend.DAL.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20230609105819_fixUser")]
-    partial class fixUser
+    [Migration("20230612053802_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
