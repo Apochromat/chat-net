@@ -44,6 +44,10 @@ public class FriendService:IFriendService {
             UserId = user.Id,
             Friends = user.Friends.Select(u => u.Id).ToList()
         });
+        await _notificationQueueService.SendOnlinePreferenceAsync(new OnlinePreferenceFriendsDto {
+            UserId = friend.Id,
+            Friends = friend.Friends.Select(u => u.Id).ToList()
+        });
         await _notificationQueueService.SendNotificationAsync(new NotificationMessageDto {
             Type = NotificationMessageType.FriendshipAccepting,
             Title = "Your friendship request accepted",
@@ -200,6 +204,10 @@ public class FriendService:IFriendService {
         await _notificationQueueService.SendOnlinePreferenceAsync(new OnlinePreferenceFriendsDto {
             UserId = user.Id,
             Friends = user.Friends.Select(u => u.Id).ToList()
+        });
+        await _notificationQueueService.SendOnlinePreferenceAsync(new OnlinePreferenceFriendsDto {
+            UserId = friend.Id,
+            Friends = friend.Friends.Select(u => u.Id).ToList()
         });
     }
 
