@@ -95,13 +95,12 @@ public class ChatController : ControllerBase {
     [HttpPost]
     [Route("chat/private/create")]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    public async Task<ActionResult> CreatePrivateChat([FromBody] ChatPrivateCreateDto model) {
+    public async Task<ActionResult<Guid>> CreatePrivateChat([FromBody] ChatPrivateCreateDto model) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
 
-        await _chatService.CreatePrivateChat(model , userId);
-        return Ok();
+        return Ok(await _chatService.CreatePrivateChat(model , userId));
     }
     
     /// <summary>

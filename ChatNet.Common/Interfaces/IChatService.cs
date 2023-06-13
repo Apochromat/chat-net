@@ -49,7 +49,7 @@ public interface IChatService {
     /// <param name="chatModel"></param>
     /// <param name="creatorId"></param>
     /// <returns></returns>
-    public Task CreatePrivateChat(ChatPrivateCreateDto chatModel , Guid creatorId);
+    public Task<Guid> CreatePrivateChat(ChatPrivateCreateDto chatModel , Guid creatorId);
     /// <summary>
     /// Create group chat
     /// </summary>

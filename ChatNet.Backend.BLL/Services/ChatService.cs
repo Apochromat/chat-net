@@ -32,6 +32,7 @@ public class ChatService: IChatService {
         if (user == null) 
             throw new NotFoundException("User with this id not found");
         var chats = await _dbContext.Chats
+            .Include(c=>c.Users)
             .Where(c => c.Users
                 .Contains(user))
             .Include(c=>c.Messages)
@@ -56,6 +57,8 @@ public class ChatService: IChatService {
                 ChatAvatarId = c.ChatAvatarId,
                 ChatName = c.ChatName,
                 DeletedTime = c.DeletedTime,
+                isPrivate = c.GetType() == typeof(PrivateChat),
+                Users = c.Users.Select(u=>u.Id).ToList(),
                 LastMessage = c.Messages.Count!=0 ? new MessageShortDto {
                     Id = c.Messages.MaxBy(m=>m.CreatedTime).Id ,
                     SenderId = c.Messages.MaxBy(m=>m.CreatedTime).User.Id,
@@ -195,7 +198,7 @@ public class ChatService: IChatService {
         
     }
 
-    public async Task CreatePrivateChat(ChatPrivateCreateDto chatModel , Guid creatorId) {
+    public async Task<Guid> CreatePrivateChat(ChatPrivateCreateDto chatModel , Guid creatorId) {
         var creator = await _dbContext.Users
             .Include(u=>u.Friends)
             .FirstOrDefaultAsync(u => u.Id == creatorId);
@@ -207,6 +210,13 @@ public class ChatService: IChatService {
             throw new NotFoundException("Creator with this id not found");
         if (!creator.Friends.Contains(user))
             throw new MethodNotAllowedException("User must be your friend to  create chat");
+        var existedChat = await _dbContext.PrivateChats
+            .FirstOrDefaultAsync(c =>
+                c.Users.Contains(creator)
+                && c.Users.Contains(user));
+        if (existedChat != null)
+            return existedChat.Id;
+        
         var chat = new PrivateChat {
             ChatAvatarId = chatModel.AvatarId,
             ChatName = chatModel.ChatName,
@@ -246,6 +256,7 @@ public class ChatService: IChatService {
                 : new List<Guid> { chatModel.AvatarId.Value },
             Viewers = chat.Users.Select(u => u.Id).ToList()
         });
+        return chat.Id;
     }
 
     public async Task CreateGroupChat(ChatCreateDto chatModel, Guid creatorId) {
