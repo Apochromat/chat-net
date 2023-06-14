@@ -34,10 +34,10 @@ public interface IMessageService {
     /// <summary>
     /// View message 
     /// </summary>
-    /// <param name="messageIds"></param>
+    /// <param name="messageId"></param>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public Task ViewMessage(List<Guid> messageIds, Guid userId);
+    public Task ViewMessage(Guid messageId, Guid userId);
 
     /// <summary>
     /// Add reaction

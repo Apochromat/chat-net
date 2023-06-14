@@ -98,20 +98,25 @@ public class MessageService: IMessageService {
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task ViewMessage(List<Guid> messagesIds, Guid userId) {
+    public async Task ViewMessage(Guid messagesId, Guid userId) {
         var user = await _dbContext.Users
             .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null) throw new NotFoundException("User with this id does not found");
-        var messagesDb = await _dbContext.Messages
+        var message = await _dbContext.Messages
+            .Include(m=>m.User)
             .Include(m => m.Chat)
-            .Where(m => messagesIds.Contains(m.Id)
-                        && !m.DeletedTime.HasValue
-            ).ToListAsync();
-        if (messagesDb == null || !messagesDb.Any()) 
+            .FirstOrDefaultAsync(m => m.Id == messagesId);
+        if (message == null) 
             throw new NotFoundException("Messages not found");
-        if (messagesDb.Any(m =>m.ViewedBy.Contains(user.Id)))
+        var previousMessages = await _dbContext.Messages
+            .Where(m => m.Chat == message.Chat
+                        && m.CreatedTime <= message.CreatedTime
+                        && m.User != user
+                        && !m.ViewedBy.Contains(user.Id))
+            .ToListAsync();
+        if (previousMessages.Any(m =>m.ViewedBy.Contains(user.Id)))
             throw new ConflictException("You already viewed this message");
-        messagesDb.ForEach(m=>m.ViewedBy.Add(user.Id));
+        previousMessages.ForEach(m=>m.ViewedBy.Add(user.Id));
         await _dbContext.SaveChangesAsync();
     }
 

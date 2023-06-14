@@ -88,17 +88,17 @@ public class MessageController: ControllerBase {
     /// <summary>
     /// View messages
     /// </summary>
-    /// <param name="messages"></param>
+    /// <param name="messageId"></param>
     /// <returns></returns>
     /// <exception cref="UnauthorizedException"></exception>
     [HttpPost]
-    [Route("messages/view")]
+    [Route("{messageId}/view")]
     [Authorize(AuthenticationSchemes = "Bearer")]
-    public async Task<ActionResult> ViewMessage([FromBody] List<Guid> messages) {
+    public async Task<ActionResult> ViewMessage(Guid messageId) {
         if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
             throw new UnauthorizedException("User is not authorized");
         }
-        await _messageService.ViewMessage(messages, userId);
+        await _messageService.ViewMessage(messageId, userId);
         return Ok();
     }
     
