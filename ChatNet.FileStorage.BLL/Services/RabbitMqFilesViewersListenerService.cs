@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
 using ChatNet.Common.DataTransferObjects;
+using ChatNet.Common.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -61,7 +62,7 @@ public class RabbitMqFilesViewersListenerService : BackgroundService {
                 if (message == null) throw new InvalidOperationException();
 
                 using (var scope = _serviceScopeFactory.CreateScope()) {
-                    var service = scope.ServiceProvider.GetRequiredService<FileStorageService>();
+                    var service = scope.ServiceProvider.GetRequiredService<IFileStorageService>();
 
                     await service.SetViewerAsync(message, null, false);
                 }
