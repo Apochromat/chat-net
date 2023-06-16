@@ -8,6 +8,13 @@ namespace ChatNet.Common.Interfaces;
 /// </summary>
 public interface IMessageService {
     /// <summary>
+    /// Get message by id
+    /// </summary>
+    /// <param name="messageId"></param>
+    /// <param name="userId"></param>
+    /// <returns></returns>
+    public Task<MessageDto> GetMessageById(Guid messageId, Guid userId);
+    /// <summary>
     /// Send message
     /// </summary>
     /// <param name="message"></param>

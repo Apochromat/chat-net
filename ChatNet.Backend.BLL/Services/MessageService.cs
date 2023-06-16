@@ -5,20 +5,58 @@ using ChatNet.Common.Enumerations;
 using ChatNet.Common.Exceptions;
 using ChatNet.Common.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 namespace ChatNet.Backend.BLL.Services; 
 
 public class MessageService: IMessageService {
     private readonly BackendDbContext _dbContext;
     private readonly INotificationQueueService _notificationQueueService;
+    private readonly IFilesQueueService _filesQueueService;
 
-    public MessageService(BackendDbContext dbContext, INotificationQueueService notificationQueueService) {
+
+    public MessageService(BackendDbContext dbContext, INotificationQueueService notificationQueueService, IFilesQueueService filesQueueService) {
         _dbContext = dbContext;
         _notificationQueueService = notificationQueueService;
+        _filesQueueService = filesQueueService;
     }
 
-//TODO : Mentioned 
+    public async Task<MessageDto> GetMessageById(Guid messageId, Guid userId) {
+        var user = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Id == userId);
+        if (user == null) throw new NotFoundException("User with this id does not found");
+        var message = await _dbContext.Messages
+            .Include(m=>m.Reactions)
+            .Include(m=>m.User)
+            .Include(m=>m.Chat)
+            .ThenInclude(c=>c.Users)
+            .FirstOrDefaultAsync(m => m.Id == messageId 
+                                      && !m.DeletedTime.HasValue
+            );
+        if (message == null) 
+            throw new NotFoundException("Message with this id does not found");
+        if (!message.Chat.Users.Contains(user))
+            throw new ForbiddenException("You don't have permission"); 
+        
+        return new MessageDto {
+            Id = message.Id,
+            SenderId = user.Id,
+            TextMessage = message.TextMessage,
+            CreatedTime = message.CreatedTime,
+            EditedTime = message.EditedTime,
+            FileIds = message.Files,
+            MessageReactions = message.Reactions.Select(r => new ReactionDto {
+                Id = r.Id,
+                Users = r.Users.Select(u => u.Id).ToList(),
+                ReactionType = r.ReactionType
+            }).ToList(),
+            IsViewed = message.ViewedBy.Contains(user.Id) || message.User == user
+        };
+    }
+
     public async Task SendMessage(MessageActionsDto message, Guid senderId, Guid chatId) {
+        if (message.TextMessage.IsNullOrEmpty() && message.FileIds.IsNullOrEmpty())
+            throw new BadRequestException("Text or files must be in message");
         var user = await _dbContext.Users
             .Include(u=>u.ChatsNotificationPreferences)
             .FirstOrDefaultAsync(u => u.Id == senderId);
@@ -35,6 +73,8 @@ public class MessageService: IMessageService {
              TextMessage = message.TextMessage,
              Files = message.FileIds ?? new List<Guid>(),
          });
+        if (!message.FileIds.IsNullOrEmpty())
+            chat.FileIds.AddRange(message.FileIds!);
         await _dbContext.SaveChangesAsync();
         var tasks = chat.Users
             .Where(u=>u.Id != user.Id)
@@ -54,6 +94,12 @@ public class MessageService: IMessageService {
             });
         });
         await Task.WhenAll(tasks);
+        await _filesQueueService.SetViewersAsync(new FilesViewersDto {
+            Files = chat.FileIds,
+            Viewers = chat.Users
+                .Select(u => u.Id)
+                .ToList()
+        });
     }
 
     public async Task EditMessage(MessageActionsDto message, Guid messageId, Guid senderId) {

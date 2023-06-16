@@ -51,6 +51,22 @@ public class MessageController: ControllerBase {
     }
     
     /// <summary>
+    /// Get message by id
+    /// </summary>
+    /// <param name="messageId"></param>
+    /// <returns></returns>
+    /// <exception cref="UnauthorizedException"></exception>
+    [HttpGet]
+    [Route("{messageId}")]
+    [Authorize(AuthenticationSchemes = "Bearer")]
+    public async Task<ActionResult<MessageDto>> GetMessageById(Guid messageId) {
+        if (User.Identity == null || Guid.TryParse(User.Identity.Name, out Guid userId) == false) {
+            throw new UnauthorizedException("User is not authorized");
+        }
+        return Ok(await _messageService.GetMessageById(messageId, userId));
+    }
+    
+    /// <summary>
     /// Edit message 
     /// </summary>
     /// <param name="model"></param>
