@@ -5,6 +5,7 @@ namespace ChatNet.Backend.DAL.Entities;
 public class UserBackend {
     public Guid Id { get; set; }
     public List<Chat> Chats { get; set; } = new();
+    //public List<GroupChat> ChatAdministrators { get; set; } = new();
     [InverseProperty("Friends")]
     public virtual ICollection<UserBackend> Users { get; set; }
     public virtual ICollection<UserBackend> Friends { get; set; }

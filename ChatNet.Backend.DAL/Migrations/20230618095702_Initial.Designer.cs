@@ -13,7 +13,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ChatNet.Backend.DAL.Migrations
 {
     [DbContext(typeof(BackendDbContext))]
-    [Migration("20230612053802_Initial")]
+    [Migration("20230618095702_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -174,12 +174,7 @@ namespace ChatNet.Backend.DAL.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("GroupChatId")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("GroupChatId");
 
                     b.ToTable("Users");
                 });
@@ -197,6 +192,21 @@ namespace ChatNet.Backend.DAL.Migrations
                     b.HasIndex("UsersId");
 
                     b.ToTable("ChatUserBackend");
+                });
+
+            modelBuilder.Entity("GroupChatUserBackend", b =>
+                {
+                    b.Property<Guid>("AdministratorsId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("GroupChatId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("AdministratorsId", "GroupChatId");
+
+                    b.HasIndex("GroupChatId");
+
+                    b.ToTable("GroupChatAdministrators", (string)null);
                 });
 
             modelBuilder.Entity("ReactionUserBackend", b =>
@@ -311,13 +321,6 @@ namespace ChatNet.Backend.DAL.Migrations
                     b.Navigation("ReactedMessage");
                 });
 
-            modelBuilder.Entity("ChatNet.Backend.DAL.Entities.UserBackend", b =>
-                {
-                    b.HasOne("ChatNet.Backend.DAL.Entities.GroupChat", null)
-                        .WithMany("Administrators")
-                        .HasForeignKey("GroupChatId");
-                });
-
             modelBuilder.Entity("ChatUserBackend", b =>
                 {
                     b.HasOne("ChatNet.Backend.DAL.Entities.Chat", null)
@@ -329,6 +332,21 @@ namespace ChatNet.Backend.DAL.Migrations
                     b.HasOne("ChatNet.Backend.DAL.Entities.UserBackend", null)
                         .WithMany()
                         .HasForeignKey("UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("GroupChatUserBackend", b =>
+                {
+                    b.HasOne("ChatNet.Backend.DAL.Entities.UserBackend", null)
+                        .WithMany()
+                        .HasForeignKey("AdministratorsId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ChatNet.Backend.DAL.Entities.GroupChat", null)
+                        .WithMany()
+                        .HasForeignKey("GroupChatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
@@ -376,11 +394,6 @@ namespace ChatNet.Backend.DAL.Migrations
             modelBuilder.Entity("ChatNet.Backend.DAL.Entities.UserBackend", b =>
                 {
                     b.Navigation("ChatsNotificationPreferences");
-                });
-
-            modelBuilder.Entity("ChatNet.Backend.DAL.Entities.GroupChat", b =>
-                {
-                    b.Navigation("Administrators");
                 });
 #pragma warning restore 612, 618
         }

@@ -13,6 +13,15 @@ public class BackendDbContext: DbContext {
     public DbSet<NotificationPreferences> NotificationPreferences { get; set; }
     public DbSet<Reaction> Reactions { get; set; }
     
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<GroupChat>()
+            .HasMany(g => g.Administrators)
+            .WithMany()
+            .UsingEntity(j => j.ToTable("GroupChatAdministrators"));
+
+        base.OnModelCreating(modelBuilder);
+    }
     
     public BackendDbContext(DbContextOptions<BackendDbContext> options) : base(options) {
     }

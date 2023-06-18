@@ -176,9 +176,13 @@ public class ChatService: IChatService {
         if (user == null) throw new NotFoundException("User with this id not found");
         
         var chat = await _dbContext.GroupChats
+            .Include(c=>c.Users)
+            .Include(c=>c.Administrators)
             .FirstOrDefaultAsync(c => c.Id == chatId);
         if (chat == null) throw new NotFoundException("Chat with this id not found");
-        if (chat.Administrators.Count <= 1 && chat.Administrators.Contains(user))
+        if (chat.Administrators.Count <= 1 
+            && chat.Administrators.Contains(user)
+            && chat.Users.Count >= 2)
             throw new MethodNotAllowedException("User can not leave the chat while he is the only admin");
         user.Chats.Remove(chat);
         if (chat.Administrators.Contains(user))

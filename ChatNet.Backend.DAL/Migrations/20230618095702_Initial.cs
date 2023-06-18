@@ -33,17 +33,11 @@ namespace ChatNet.Backend.DAL.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    GroupChatId = table.Column<Guid>(type: "uuid", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Users", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Users_Chats_GroupChatId",
-                        column: x => x.GroupChatId,
-                        principalTable: "Chats",
-                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -90,6 +84,30 @@ namespace ChatNet.Backend.DAL.Migrations
                     table.ForeignKey(
                         name: "FK_FriendShipRequests_Users_RequestToId",
                         column: x => x.RequestToId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "GroupChatAdministrators",
+                columns: table => new
+                {
+                    AdministratorsId = table.Column<Guid>(type: "uuid", nullable: false),
+                    GroupChatId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_GroupChatAdministrators", x => new { x.AdministratorsId, x.GroupChatId });
+                    table.ForeignKey(
+                        name: "FK_GroupChatAdministrators_Chats_GroupChatId",
+                        column: x => x.GroupChatId,
+                        principalTable: "Chats",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_GroupChatAdministrators_Users_AdministratorsId",
+                        column: x => x.AdministratorsId,
                         principalTable: "Users",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -235,6 +253,11 @@ namespace ChatNet.Backend.DAL.Migrations
                 column: "RequestToId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_GroupChatAdministrators_GroupChatId",
+                table: "GroupChatAdministrators",
+                column: "GroupChatId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Messages_ChatId",
                 table: "Messages",
                 column: "ChatId");
@@ -268,11 +291,6 @@ namespace ChatNet.Backend.DAL.Migrations
                 name: "IX_UserBackendUserBackend_UsersId",
                 table: "UserBackendUserBackend",
                 column: "UsersId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Users_GroupChatId",
-                table: "Users",
-                column: "GroupChatId");
         }
 
         /// <inheritdoc />
@@ -283,6 +301,9 @@ namespace ChatNet.Backend.DAL.Migrations
 
             migrationBuilder.DropTable(
                 name: "FriendShipRequests");
+
+            migrationBuilder.DropTable(
+                name: "GroupChatAdministrators");
 
             migrationBuilder.DropTable(
                 name: "NotificationPreferences");
@@ -300,10 +321,10 @@ namespace ChatNet.Backend.DAL.Migrations
                 name: "Messages");
 
             migrationBuilder.DropTable(
-                name: "Users");
+                name: "Chats");
 
             migrationBuilder.DropTable(
-                name: "Chats");
+                name: "Users");
         }
     }
 }
