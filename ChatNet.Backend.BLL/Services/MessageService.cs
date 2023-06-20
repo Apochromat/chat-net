@@ -63,6 +63,8 @@ public class MessageService: IMessageService {
         if (user == null) throw new NotFoundException("User with this id does not found");
         var chat = await _dbContext.Chats
             .Include(c=>c.Users)
+            .ThenInclude(u=>u.ChatsNotificationPreferences)
+            .ThenInclude(n=>n.PreferencedChat)
             .FirstOrDefaultAsync(c => c.Id == chatId);
         if (chat == null) throw new NotFoundException("Chat with this id not found");
         if (chat.DeletedTime.HasValue)
