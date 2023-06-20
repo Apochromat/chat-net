@@ -81,7 +81,7 @@ public class MessageService: IMessageService {
             .Select(async u =>
         {
             await _notificationQueueService.SendNotificationAsync(new NotificationMessageDto {
-                Type = user.ChatsNotificationPreferences
+                Type = u.ChatsNotificationPreferences
                     .FirstOrDefault(n=>n.PreferencedChat == chat)!
                     .PreferenceType == NotificationPreferenceType.All?
                     NotificationMessageType.NewMessage: NotificationMessageType.NewMessageMuted,
